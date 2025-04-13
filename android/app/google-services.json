@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "722903766795",
+    "project_id": "trixo-1eacc",
+    "storage_bucket": "trixo-1eacc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722903766795:android:565b691c9f04890f05f40e",
+        "android_client_info": {
+          "package_name": "com.example.trixo_frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-EwjvsWeDmILrVJ-Eyatgtw9Zf8rXvxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
