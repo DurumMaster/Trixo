@@ -24,7 +24,7 @@ class AuthService{
       }
   }
 
-  Future<void> signIn({ //Login
+  Future<bool> signIn({ //Login
     required String email, 
     required String password,
     }) async {
@@ -34,7 +34,7 @@ class AuthService{
 
         if(credentials.user == null){
           log("Usuario no encontrado: $email", name: "AuthService");
-          return;
+          return false;
         }
 
         if(credentials.user?.emailVerified == false){
@@ -43,12 +43,14 @@ class AuthService{
         }
 
         log("Se ha iniciado sesion con exito: ${credentials.user?.uid}", name: "AuthService");
+        return true;
       } catch (e){
         log("Error al iniciar sesion: $e", name: "AuthService");
+        return false;
       }
   }
 
-  Future<void> signInWithGoogle() async { //Login con google
+  Future<bool> signInWithGoogle() async { //Login con google
     try{
       final GoogleSignInAccount? user = await _googleSignIn.signIn();
 
@@ -59,13 +61,13 @@ class AuthService{
         idToken: googleAuth?.idToken,
       );
 
-      await _firebaseAuth.signInWithCredential(credential).then((value) {
-        log("Usuario registrado: ${value.user?.uid}", name: "AuthService");
-      }).catchError((e) {
-        log("Error al registrar: $e", name: "AuthService");
-      });
+      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+        log("Usuario registrado", name: "AuthService");
+        return userCredential.user != null;
+
     } catch (e) {
       log("Error al iniciar sesion con Google: $e", name: "AuthService");
+      return false;
     }
 
   }

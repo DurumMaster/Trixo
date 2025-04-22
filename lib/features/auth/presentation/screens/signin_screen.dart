@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_service.dart';
 import 'package:trixo_frontend/features/auth/presentation/screens/login_screen.dart';
-import 'package:trixo_frontend/features/shared/widgets/custom_checkbox.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_elevated_button.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_text_field.dart';
 
@@ -14,7 +13,6 @@ class SignInScreen extends StatelessWidget {
     final TextEditingController usernameController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
-    bool? isChecked = true;
 
     return Scaffold(
       backgroundColor: Colors.white10,
@@ -22,10 +20,30 @@ class SignInScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: ListView(
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ],
+            ),
+            
             const Center(
               child: Text(
-                'M', 
+                'T', 
                 style: TextStyle(
                   fontSize: 64, 
                   color: Colors.pink, 
@@ -38,7 +56,7 @@ class SignInScreen extends StatelessWidget {
             const Text('Introduce los datos para poder\nempezar a compartir tus ideas',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 16)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 40),
 
             CustomTextField(
               hintText: 'Introduce su correo electrónico',
@@ -46,7 +64,7 @@ class SignInScreen extends StatelessWidget {
               keyboardType: TextInputType.emailAddress,
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             CustomTextField(
               hintText: 'Nombre de usuario',
@@ -54,7 +72,7 @@ class SignInScreen extends StatelessWidget {
               keyboardType: TextInputType.text,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             CustomTextField(
               hintText: 'Contraseña',
               obscureText: true,
@@ -62,20 +80,14 @@ class SignInScreen extends StatelessWidget {
               keyboardType: TextInputType.visiblePassword,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             CustomTextField(
               hintText: 'Repite la contraseña',
               obscureText: true,
               controller: confirmPasswordController,
               keyboardType: TextInputType.visiblePassword,
             ),
-            const SizedBox(height: 16),
-            
-            CustomCheckbox(
-              text: "Acepto los términos y condiciones",
-              color: Colors.white,
-              value: isChecked,
-            ),
+            const SizedBox(height: 115),
 
             CustomElevatedButton(
               text: "Resgistrarse",
@@ -88,23 +100,6 @@ class SignInScreen extends StatelessWidget {
                   context
                 );
               }
-            ),
-            
-            const SizedBox(height: 16),
-
-            TextButton(
-              onPressed: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ),
-                );
-              },
-              child: const Text(
-                "¿Ya tienes cuenta?",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
             ),
           ],
         ),

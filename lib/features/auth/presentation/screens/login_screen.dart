@@ -5,6 +5,7 @@ import 'package:trixo_frontend/features/auth/presentation/screens/signin_screen.
 import 'package:trixo_frontend/features/post/presentation/views/home_view.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_elevated_button.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_text_field.dart';
+import 'package:sign_button/sign_button.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -23,7 +24,7 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('M', style: TextStyle(fontSize: 64, color: Colors.pink, fontWeight: FontWeight.bold)),
+              const Text('T', style: TextStyle(fontSize: 64, color: Colors.pink, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               const Text('¡Hola!\nBienvenido a Trixo 👋',
                   textAlign: TextAlign.center,
@@ -45,34 +46,53 @@ class LoginScreen extends StatelessWidget {
                 controller: passwordController,
                 keyboardType: TextInputType.visiblePassword,
               ),
-              
-              const SizedBox(height: 24),
+              const SizedBox(height: 2),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ResetPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "¿Olvidaste tu contraseña?",
+                      style: TextStyle(color: Colors.white38, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 7),
               
               CustomElevatedButton(
+                width: 285,
                 text: "Iniciar Sesión",
-                onPressed: (){
+                onPressed: () {
                   signInWithEmail(emailController, passwordController, context);
                 }
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 90),
               
-              IconButton(
+              SignInButton(
+                width: 257,
+                buttonType: ButtonType.google,
                 onPressed: (){
                   signInWithGoogle(context);
-                }, 
-                icon: Image.asset(
-                  "assets/images/google_icon.png",
-                   width: 100, height: 100,
-                ),
-                color: Colors.white,
+                },
               ),
               
-              const SizedBox(height: 16),
-              const SizedBox(height: 8),
+              const SizedBox(height: 18),
               
               CustomElevatedButton(
-                text: "Crear Cuenta",
+                width: 285,
+                text: "Registrarse",
                 onPressed: (){
                   Navigator.push(
                     context,
@@ -84,21 +104,6 @@ class LoginScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-
-              TextButton(
-                onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ResetPasswordScreen(),
-                    ),
-                  );
-                },
-                child: const Text(
-                  "¿Olvidaste tu contraseña?",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
             ],
           ),
         ),
@@ -106,17 +111,27 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void signInWithGoogle(BuildContext context) {
+  void signInWithGoogle(BuildContext context) async {
     AuthService authService = AuthService();
     
-    authService.signInWithGoogle();
+    bool success = await authService.signInWithGoogle();
     
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const HomeView(),
-      ),
-    );
+    if(success){
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeView(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Error al iniciar sesión con Google."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ));
+    }
+    return;
   }
 
   void signInWithEmail(TextEditingController emailController, TextEditingController passwordController, BuildContext context) async{
@@ -128,24 +143,32 @@ class LoginScreen extends StatelessWidget {
     
         AuthService authService = AuthService();
     
-        await authService.signIn(email: email, password: password);
+        final result = await authService.signIn(email: email, password: password);
 
         final bool isEmailVerified = await authService.isEmailVerified();
-
-        if(!isEmailVerified){
+        if(result){
+          if(!isEmailVerified){
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Por favor, verifica tu correo electrónico."),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ));
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeView(),
+              ),
+            );
+          }
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Por favor, verifica tu correo electrónico."),
+              content: Text("Error al iniciar sesión. Verifica tus credenciales."),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 2),
             ));
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeView(),
-            ),
-          );
         }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,5 +179,6 @@ class LoginScreen extends StatelessWidget {
         ));
       }
     }
+    return;
   }
 }

@@ -17,10 +17,29 @@ class ResetPasswordScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: ListView(
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              ],
+            ),
             const Center(
               child: Text(
-                'M', 
+                'T', 
                 style: TextStyle(
                   fontSize: 64, 
                   color: Colors.pink,
@@ -30,7 +49,7 @@ class ResetPasswordScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            const Text('Introduce los datos para poder\nempezar a compartir tus ideas',
+            const Text('Te llegará un correo para restablecer tu contraseña\n¡Estate atento!',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 24),
@@ -51,21 +70,6 @@ class ResetPasswordScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 16),
-
-            TextButton(
-              onPressed: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ),
-                );
-              },
-              child: const Text(
-                "Volver a iniciar sesión",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ),
           ],
         ),
       ),
