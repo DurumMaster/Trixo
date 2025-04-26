@@ -1,184 +1,154 @@
 import 'package:flutter/material.dart';
-import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
-import 'package:trixo_frontend/features/auth/presentation/screens/reset_password_screen.dart';
-import 'package:trixo_frontend/features/auth/presentation/screens/signin_screen.dart';
-import 'package:trixo_frontend/features/post/presentation/views/home_view.dart';
-import 'package:trixo_frontend/features/shared/widgets/custom_elevated_button.dart';
-import 'package:trixo_frontend/features/shared/widgets/custom_text_field.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sign_button/sign_button.dart';
+import 'package:go_router/go_router.dart';
 
-class LoginScreen extends StatelessWidget {
+import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';
+import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
+import 'package:trixo_frontend/features/shared/widgets/loading_button.dart';
+
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loginForm = ref.watch(loginFormProvider);
+    final notifier = ref.read(loginFormProvider.notifier);
+    final textTheme = Theme.of(context).textTheme;
 
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
-  
-    return Scaffold(
-      backgroundColor: Colors.white10,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('T', style: TextStyle(fontSize: 64, color: Colors.pink, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              const Text('¡Hola!\nBienvenido a Trixo 👋',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              
-              const SizedBox(height: 32),
-              
-              CustomTextField(
-                hintText: 'Correo electrónico',
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              CustomTextField(
-                hintText: 'Contraseña',
-                obscureText: true,
-                controller: passwordController,
-                keyboardType: TextInputType.visiblePassword,
-              ),
-              const SizedBox(height: 2),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ResetPasswordScreen(),
-                        ),
-                      );
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        body: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(
+              children: [
+                const SizedBox(height: 100),
+                const Icon(Icons.account_circle_rounded, size: 100),
+                const SizedBox(height: 50),
+                Text('¡Hola! Bienvenido a Trixo 👋',
+                    style: textTheme.titleMedium),
+                const SizedBox(height: 50),
+                CustomTextFormField(
+                  label: 'Correo',
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: notifier.onEmailChanged,
+                  errorMessage: loginForm.isFormPosted
+                      ? loginForm.email.errorMessage
+                      : null,
+                ),
+                const SizedBox(height: 20),
+                CustomTextFormField(
+                  label: 'Contraseña',
+                  showPasswordToggle: true,
+                  obscureText: true,
+                  onChanged: notifier.onPasswordChange,
+                  onFieldSubmitted: (_) => _submit(context, ref),
+                  errorMessage: loginForm.isFormPosted
+                      ? loginForm.password.errorMessage
+                      : null,
+                ),
+                const SizedBox(height: 5),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      if (context.mounted) {
+                        context.go('/reset_password');
+                      }
                     },
-                    child: const Text(
-                      "¿Olvidaste tu contraseña?",
-                      style: TextStyle(color: Colors.white38, fontSize: 14),
+                    child: Text(
+                      '¿Olvidaste tu contraseña?',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 7),
-              
-              CustomElevatedButton(
-                width: 285,
-                text: "Iniciar Sesión",
-                onPressed: () {
-                  signInWithEmail(emailController, passwordController, context);
-                }
-              ),
-
-              const SizedBox(height: 90),
-              
-              SignInButton(
-                width: 257,
-                buttonType: ButtonType.google,
-                onPressed: (){
-                  signInWithGoogle(context);
-                },
-              ),
-              
-              const SizedBox(height: 18),
-              
-              CustomElevatedButton(
-                width: 285,
-                text: "Registrarse",
-                onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SignInScreen(),
+                ),
+                const SizedBox(height: 30),
+                MUILoadingButton(
+                  text: 'Iniciar sesión',
+                  loadingStateText: 'Iniciando sesión...',
+                  onPressed: loginForm.isPosting
+                      ? () async {}
+                      : () async {
+                          await _submit(context, ref);
+                        },
+                ),
+                const SizedBox(height: 60),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: SignInButton(
+                        buttonType: ButtonType.google,
+                        onPressed: loginForm.isPosting
+                            ? () {}
+                            : () => _googleSignIn(context, ref),
+                      ),
                     ),
-                  );
-                }
-              ),
-
-              const SizedBox(height: 16),
-            ],
+                    const SizedBox(height: 5),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CustomElevatedButton(
+                        text: 'Regístrate',
+                        onPressed: () {
+                          if (context.mounted) {
+                            context.go('/signin');
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  void signInWithGoogle(BuildContext context) async {
-    AuthService authService = AuthService();
-    
-    bool success = await authService.signInWithGoogle();
-    
-    if(success){
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeView(),
+  Future<void> _submit(BuildContext context, WidgetRef ref) async {
+    final verified = await ref.read(loginFormProvider.notifier).onFormSubmit();
+
+    if (!verified && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Credenciales inválidas o correo no verificado. Revisa tu email.',
+          ),
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Error al iniciar sesión con Google."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ));
+      return;
     }
-    return;
+
+    if (context.mounted) {
+      context.go('/home');
+    }
   }
 
-  void signInWithEmail(TextEditingController emailController, TextEditingController passwordController, BuildContext context) async{
-    if(emailController.text.trim().isNotEmpty){
-      String email = emailController.text.trim();
-    
-      if(passwordController.text.trim().isNotEmpty){
-        String password = passwordController.text.trim();
-    
-        AuthService authService = AuthService();
-    
-        final result = await authService.signIn(email: email, password: password);
+  Future<void> _googleSignIn(BuildContext context, WidgetRef ref) async {
+    final verified =
+        await ref.read(loginFormProvider.notifier).signInWithGoogle();
 
-        final bool isEmailVerified = await authService.isEmailVerified();
-        if(result){
-          if(!isEmailVerified){
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Por favor, verifica tu correo electrónico."),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 2),
-              ));
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const HomeView(),
-              ),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Error al iniciar sesión. Verifica tus credenciales."),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 2),
-            ));
-        }
-    } else {
+    if (!verified && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Por favor, ingresa tu correo electrónico."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ));
-      }
+          content: Text(
+            'Error con Google o correo no verificado. Revisa tu email.',
+          ),
+        ),
+      );
+      return;
     }
-    return;
+
+    if (context.mounted) {
+      context.go('/home');
+    }
   }
 }

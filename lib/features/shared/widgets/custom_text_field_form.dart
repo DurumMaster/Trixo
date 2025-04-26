@@ -1,79 +1,119 @@
 import 'package:flutter/material.dart';
+import 'package:trixo_frontend/config/theme/app_colors.dart';
 
-class CustomTextFormField extends StatelessWidget {
+class CustomTextFormField extends StatefulWidget {
   final String? label;
   final String? hint;
   final String? errorMessage;
   final bool obscureText;
+  final bool showPasswordToggle;
   final TextInputType? keyboardType;
   final Function(String)? onChanged;
   final Function(String)? onFieldSubmitted;
   final String? Function(String?)? validator;
-  final TextEditingController? controller;
 
   const CustomTextFormField({
-    super.key, 
-    this.label, 
-    this.hint, 
-    this.errorMessage, 
+    super.key,
+    this.label,
+    this.hint,
+    this.errorMessage,
     this.obscureText = false,
+    this.showPasswordToggle = false,
     this.keyboardType = TextInputType.text,
-    this.onChanged, 
+    this.onChanged,
     this.onFieldSubmitted,
-    this.validator, 
-    this.controller
+    this.validator,
   });
 
   @override
+  CustomTextFormFieldState createState() => CustomTextFormFieldState();
+}
+
+class CustomTextFormFieldState extends State<CustomTextFormField> {
+  late bool _obscureText;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.obscureText;
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final isLightMode = Theme.of(context).brightness == Brightness.light;
+
+    final backgroundColor = isLightMode ? AppColors.white : AppColors.black;
+    final borderColor = isLightMode ? AppColors.black : AppColors.white;
+    final inputTextColor = isLightMode ? AppColors.black : AppColors.white;
+    final hintTextColor = isLightMode
+        ? AppColors.textSecondaryLight
+        : AppColors.textSecondaryDark;
 
     final border = OutlineInputBorder(
-      borderSide: BorderSide(color: colors.primary.withValues(alpha: 0.3)),
-      borderRadius: BorderRadius.circular(15),
+      borderSide: BorderSide(color: borderColor, width: 1.8),
+      borderRadius: BorderRadius.circular(12),
     );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: colors.secondary.withValues(alpha: 0.7),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return TextFormField(
+      onChanged: widget.onChanged,
+      onFieldSubmitted: widget.onFieldSubmitted,
+      obscureText: _obscureText,
+      keyboardType: widget.keyboardType,
+      validator: widget.validator,
+      cursorColor: inputTextColor,
+      style: TextStyle(
+        color: inputTextColor,
+        fontSize: 16,
       ),
-      child: TextFormField(
-        onChanged: onChanged,
-        cursorColor: colors.secondary,
-        validator: validator,
-        onFieldSubmitted: onFieldSubmitted,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        controller: controller,
-        style: textTheme.bodyLarge,
-        decoration: InputDecoration(
-          fillColor: colors.surface,
-          enabledBorder: border,
-          focusedBorder: border.copyWith(
-            borderSide: BorderSide(color: colors.primary),
-          ),
-          errorBorder: border.copyWith(
-            borderSide: BorderSide(color: colors.error),
-          ),
-          focusedErrorBorder: border.copyWith(
-            borderSide: BorderSide(color: colors.error),
-          ),
-          isDense: true,
-          labelText: label,
-          hintText: hint,
-          errorText: errorMessage,
-          hintStyle: textTheme.bodyLarge,
-          labelStyle: textTheme.bodyLarge,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: backgroundColor,
+        labelText: widget.label,
+        hintText: widget.hint,
+        errorText: widget.errorMessage,
+        labelStyle: TextStyle(
+          color: inputTextColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
         ),
+        hintStyle: TextStyle(
+          color: hintTextColor,
+          fontSize: 14,
+        ),
+        errorStyle: const TextStyle(
+          color: AppColors.error,
+          fontSize: 13,
+        ),
+        errorMaxLines: 2,
+        enabledBorder: border,
+        focusedBorder: border.copyWith(
+          borderSide: BorderSide(color: borderColor, width: 2.5),
+        ),
+        errorBorder: border.copyWith(
+          borderSide: const BorderSide(color: AppColors.error, width: 2),
+        ),
+        focusedErrorBorder: border.copyWith(
+          borderSide: const BorderSide(color: AppColors.error, width: 2.5),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        isDense: true,
+        suffixIcon:
+            widget.showPasswordToggle // Solo mostramos el ojo si es verdadero
+                ? IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility : Icons.visibility_off,
+                      color: inputTextColor,
+                    ),
+                    onPressed: _togglePasswordVisibility,
+                  )
+                : null,
       ),
     );
   }

@@ -2,117 +2,68 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  //* LIGHT THEME
-  static final ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
-    primaryColor: AppColors.primary,
-    scaffoldBackgroundColor: AppColors.backgroundLight,
-    colorScheme: const ColorScheme.light(
-      primary: AppColors.primary,
-      secondary: AppColors.accent,
-      surface: AppColors.white,
-      error: AppColors.error,
-      onPrimary: AppColors.white,
-      onSecondary: AppColors.primary,
-      onSurface: AppColors.textLight,
-      onError: AppColors.white,
-    ),
-    textTheme: const TextTheme(
-      titleLarge: TextStyle(color: AppColors.textLight),
-      titleMedium: TextStyle(color: AppColors.textLight),
-      bodyMedium: TextStyle(color: AppColors.textLight),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.primary),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
-      ),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.white,
-      foregroundColor: AppColors.primary,
-      elevation: 0,
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.white,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.grey,
-      showSelectedLabels: true,
-      showUnselectedLabels: false,
-    ),
-  );
+  static ThemeData get lightTheme => _buildTheme(Brightness.light);
+  static ThemeData get darkTheme => _buildTheme(Brightness.dark);
 
-  //* DARK THEME
-  static final ThemeData darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    primaryColor: AppColors.primary,
-    scaffoldBackgroundColor: AppColors.backgroundDark,
-    colorScheme: const ColorScheme.dark(
-      primary: AppColors.primary,
-      secondary: AppColors.accent,
-      surface: AppColors.backgroundDark,
-      error: AppColors.error,
-      onPrimary: AppColors.white,
-      onSecondary: AppColors.primary,
-      onSurface: AppColors.textDark,
-      onError: AppColors.white,
-    ),
-    textTheme: const TextTheme(
-      titleLarge: TextStyle(color: AppColors.textDark),
-      titleMedium: TextStyle(color: AppColors.textDark),
-      bodyMedium: TextStyle(color: AppColors.textDark),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+  static ThemeData _buildTheme(Brightness brightness) {
+    final bool isLight = brightness == Brightness.light;
+
+    return ThemeData(
+      brightness: brightness,
+      scaffoldBackgroundColor:
+          isLight ? AppColors.backgroundLight : AppColors.backgroundDark,
+      primaryColor: AppColors.primary,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: AppColors.primary,
+        secondary: AppColors.accent,
+        surface: isLight ? AppColors.backgroundLight : AppColors.backgroundDark,
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSecondary: AppColors.primary,
+        onSurface:
+            isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark,
+        onError: AppColors.white,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor:
+            isLight ? AppColors.surfaceLight : AppColors.backgroundDark,
+        foregroundColor: isLight ? AppColors.primary : AppColors.accent,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: isLight ? AppColors.primary : AppColors.accent,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
       ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.accent,
-        side: const BorderSide(color: AppColors.accent),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: AppColors.accent,
-      ),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.backgroundDark,
-      foregroundColor: AppColors.accent,
-      elevation: 0,
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.backgroundDark,
-      selectedItemColor: AppColors.accent,
-      unselectedItemColor: AppColors.grey,
-      showSelectedLabels: true,
-      showUnselectedLabels: false,
-    ),
-  );
+      textTheme: _textTheme(isLight),
+      dividerColor: isLight ? AppColors.borderLight : AppColors.borderDark,
+      cardColor: isLight ? AppColors.surfaceLight : AppColors.surfaceDark,
+    );
+  }
+
+  static TextTheme _textTheme(bool isLight) {
+    final primary =
+        isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark;
+    final secondary =
+        isLight ? AppColors.textSecondaryLight : AppColors.textSecondaryDark;
+
+    return TextTheme(
+      displayLarge:
+          TextStyle(color: primary, fontSize: 48, fontWeight: FontWeight.bold),
+      headlineLarge:
+          TextStyle(color: primary, fontSize: 32, fontWeight: FontWeight.bold),
+      headlineMedium:
+          TextStyle(color: primary, fontSize: 24, fontWeight: FontWeight.bold),
+      titleLarge:
+          TextStyle(color: primary, fontSize: 20, fontWeight: FontWeight.w600),
+      titleMedium:
+          TextStyle(color: primary, fontSize: 18, fontWeight: FontWeight.w500),
+      bodyLarge: TextStyle(color: primary, fontSize: 16),
+      bodyMedium: TextStyle(color: secondary, fontSize: 14),
+      labelLarge:
+          TextStyle(color: primary, fontSize: 14, fontWeight: FontWeight.w500),
+    );
+  }
 }

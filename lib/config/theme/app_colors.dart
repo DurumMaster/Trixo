@@ -1,31 +1,38 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Color de marca (burdeos oscuro / vino profundo)
-  static const Color primary = Color(0xFF6B0F1A); // Marca Trixo
+  // Brand Colors
+  static const Color primary = Color(0xFF000000); // Color principal (negro)
+  static const Color accent = Color(0xFFFFD700); // Acento dorado (ejemplo)
 
-  // Color neutro claro (fondo principal)
-  static const Color backgroundLight = Color(0xFFF9F9F9); // Fondo claro
+  // Backgrounds
+  static const Color backgroundLight = Color(0xFFF9F9F9);
+  static const Color backgroundDark = Color(0xFF1E1E1E);
 
-  // Color neutro oscuro (modo oscuro / texto oscuro)
-  static const Color backgroundDark = Color(0xFF1E1E1E); // Fondo oscuro
+  // Surface (tarjetas, componentes secundarios)
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color surfaceDark = Color(0xFF2C2C2C);
 
-  // Texto
-  static const Color textLight = Color(0xFF1E1E1E); // Texto sobre fondo claro
-  static const Color textDark = Color(0xFFFFFFFF); // Texto sobre fondo oscuro
+  // Text
+  static const Color textPrimaryLight = Color(0xFF1E1E1E);
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
 
-  // Gris para bordes y UI secundaria
-  static const Color grey =
-      Color(0xFFE2E2E2); // Gris suave para contornos y secciones
+  static const Color textSecondaryLight =
+      Color(0xFF6E6E6E); // Gris oscuro suave
+  static const Color textSecondaryDark =
+      Color(0xFFB3B3B3); // Gris claro para dark
 
-  // Acento elegante (oro viejo / champagne sutil)
-  static const Color accent = Color(0xFFC6A87D); // Hover, detalles refinados
+  // Borders & Dividers
+  static const Color borderLight = Color(0xFFE2E2E2);
+  static const Color borderDark = Color(0xFF3A3A3A);
 
-  // Estados
-  static const Color success = Color(0xFF4CAF50); // Verde (éxito)
-  static const Color error = Color(0xFFF44336); // Rojo (error)
+  // Status Colors
+  static const Color success = Color(0xFF4CAF50);
+  static const Color error = Color(0xFFF44336);
+  static const Color warning = Color(0xFFFFC107);
+  static const Color info = Color(0xFF2196F3);
 
-  // Blanco y negro puros si los necesitas
-  static const Color white = Color(0xFFFFFFFF); // Blanco puro
-  static const Color black = Color(0xFF000000); // Negro puro
+  // Neutrals
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
 }

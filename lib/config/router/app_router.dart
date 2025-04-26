@@ -29,6 +29,10 @@ final goRouterProvider = Provider((ref) {
         path: '/signin',
         builder: (context, state) => const SignInScreen(),
       ),
+      GoRoute(
+        path: '/reset_password',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
       //* Views NavBar
       StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trixo_frontend/config/theme/app_colors.dart';
 
 class MUILoadingButton extends StatefulWidget {
   const MUILoadingButton({
@@ -6,11 +7,7 @@ class MUILoadingButton extends StatefulWidget {
     required this.text,
     required this.onPressed,
     this.loadingStateText = '',
-    this.bgColor = Colors.black,
-    this.textColor = Colors.white,
-    this.loadingStateBackgroundColor = Colors.grey,
-    this.loadingStateTextColor = Colors.white,
-    this.borderRadius = 10,
+    this.borderRadius = 12.0,
     this.animationDuration = 250,
     this.hapticsEnabled = false,
     this.widthFactorUnpressed = 0.04,
@@ -20,66 +17,22 @@ class MUILoadingButton extends StatefulWidget {
     this.maxHorizontalPadding = 50,
     this.leadingIcon,
     this.actionIcon,
-    this.iconColor = Colors.white,
     this.boxShadows,
   });
 
-  /// Text for Loading Button
   final String text;
-
-  /// Future Function to be passed, must be awaited
   final Future<void> Function() onPressed;
-
-  /// Text to be shown when the widget is in the loading state, empty string by default
   final String loadingStateText;
-
-  /// Background color of the loading button
-  final Color bgColor;
-
-  /// Text color of the loading button
-  final Color textColor;
-
-  /// Background Color when the button is in the loading state
-  final Color loadingStateBackgroundColor;
-
-  /// Text Color when the button is in the loading state
-  final Color loadingStateTextColor;
-
-  /// Border radius, default value is 10
   final double borderRadius;
-
-  /// Animation duration in milliseconds, default value is 250ms
   final int animationDuration;
-
-  /// Enables light haptic feedback
   final bool hapticsEnabled;
-
-  /// A double value which gets multiplied by the current screen width when the button is not pressed
   final double widthFactorUnpressed;
-
-  /// A double value which gets multiplied by the current screen width when the button is pressed
   final double widthFactorPressed;
-
-  /// A double value which gets multiplied by the current screen height when the button is pressed
   final double heightFactorPressed;
-
-  /// A double value which gets multiplied by the current screen height when the button is not pressed
   final double heightFactorUnPressed;
-
-  /// A double value which determines maximum horizontal padding a button can accumulate
-  /// Play with this value if you want to use the button on a larger screen size
   final double maxHorizontalPadding;
-
-  /// Optional leading icon for the button.
   final IconData? leadingIcon;
-
-  /// Optional action icon for the button.
   final IconData? actionIcon;
-
-  /// Icon color for both leading and action icons, default: white.
-  final Color iconColor;
-
-  /// Box shadows for button
   final List<BoxShadow>? boxShadows;
 
   @override
@@ -119,10 +72,17 @@ class _MUILoadingButtonState extends State<MUILoadingButton> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: widget.animationDuration),
         decoration: BoxDecoration(
+          color: AppColors.black,
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          color: !_isLoadingButtonPressed
-              ? widget.bgColor
-              : widget.loadingStateBackgroundColor,
+          border: Border.all(color: AppColors.white, width: 1.5),
+          boxShadow: widget.boxShadows ??
+              [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
         ),
         padding: EdgeInsets.symmetric(
           horizontal: _isLoadingButtonPressed
@@ -132,60 +92,65 @@ class _MUILoadingButtonState extends State<MUILoadingButton> {
               ? getScreenWidth(context) * widget.heightFactorPressed
               : getScreenWidth(context) * widget.heightFactorUnPressed,
         ).clamp(
-          const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 8,
-          ),
+          const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           EdgeInsets.symmetric(
-            horizontal: widget.maxHorizontalPadding,
-            vertical: 16,
-          ),
+              horizontal: widget.maxHorizontalPadding, vertical: 16),
         ),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
+        child: AnimatedSwitcher(
+          duration: Duration(milliseconds: widget.animationDuration),
           child: !_isLoadingButtonPressed
               ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.leadingIcon != null)
-                    Icon(
-                      widget.leadingIcon,
-                      color: widget.iconColor,
-                      // size: getScreenWidth(context) * 0.05,
-                      size: 12,
+                  key: const ValueKey('buttonText'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.leadingIcon != null)
+                      Icon(
+                        widget.leadingIcon,
+                        color: AppColors.white,
+                        size: 18,
+                      ),
+                    if (widget.leadingIcon != null) const SizedBox(width: 8),
+                    Text(
+                      widget.text,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  SizedBox(width: widget.leadingIcon != null ? 8.0 : 0.0),
-                  Text(
-                    widget.text,
-                    style: TextStyle(color: widget.textColor),
-                  ),
-                  SizedBox(width: widget.actionIcon != null ? 8.0 : 0.0),
-                  if (widget.actionIcon != null)
-                    Icon(
-                      widget.actionIcon,
-                      color: widget.iconColor,
-                      // size: getScreenWidth(context) * 0.05,
-                      size: 12,
+                    if (widget.actionIcon != null) const SizedBox(width: 8),
+                    if (widget.actionIcon != null)
+                      Icon(
+                        widget.actionIcon,
+                        color: AppColors.white,
+                        size: 18,
+                      ),
+                  ],
+                )
+              : Row(
+                  key: const ValueKey('loadingState'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 15),
+                      width: 18,
+                      height: 18,
+                      child: const CircularProgressIndicator(
+                        color: AppColors.white,
+                        strokeWidth: 2,
+                      ),
                     ),
-                ],
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 15),
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      color: widget.loadingStateTextColor,
+                    Text(
+                      widget.loadingStateText.isNotEmpty
+                          ? widget.loadingStateText
+                          : 'Cargando...',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  Text(
-                    widget.loadingStateText,
-                    style: TextStyle(color: widget.loadingStateTextColor),
-                  )
-                ],
-              ),
+                  ],
+                ),
         ),
       ),
     );
