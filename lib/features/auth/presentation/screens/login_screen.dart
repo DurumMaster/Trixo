@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
-import 'package:trixo_frontend/features/shared/widgets/loading_button.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -50,7 +49,6 @@ class LoginScreen extends ConsumerWidget {
                       ? loginForm.password.errorMessage
                       : null,
                 ),
-                const SizedBox(height: 5),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -73,7 +71,7 @@ class LoginScreen extends ConsumerWidget {
                   text: 'Iniciar sesión',
                   loadingStateText: 'Iniciando sesión...',
                   onPressed: loginForm.isPosting
-                      ? () async {}
+                      ? null
                       : () async {
                           await _submit(context, ref);
                         },
@@ -87,7 +85,7 @@ class LoginScreen extends ConsumerWidget {
                       child: SignInButton(
                         buttonType: ButtonType.google,
                         onPressed: loginForm.isPosting
-                            ? () {}
+                            ? null
                             : () => _googleSignIn(context, ref),
                       ),
                     ),

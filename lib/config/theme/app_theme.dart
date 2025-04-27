@@ -57,9 +57,9 @@ class AppTheme {
       headlineMedium:
           TextStyle(color: primary, fontSize: 24, fontWeight: FontWeight.bold),
       titleLarge:
-          TextStyle(color: primary, fontSize: 20, fontWeight: FontWeight.w600),
+          TextStyle(color: primary, fontSize: 20, fontWeight: FontWeight.bold),
       titleMedium:
-          TextStyle(color: primary, fontSize: 18, fontWeight: FontWeight.w500),
+          TextStyle(color: primary, fontSize: 18, fontWeight: FontWeight.bold),
       bodyLarge: TextStyle(color: primary, fontSize: 16),
       bodyMedium: TextStyle(color: secondary, fontSize: 14),
       labelLarge:

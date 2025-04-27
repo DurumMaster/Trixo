@@ -1,91 +1,86 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
-import 'package:trixo_frontend/features/shared/widgets/custom_elevated_button.dart';
-import 'package:trixo_frontend/features/shared/widgets/custom_text_field.dart';
+import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 
-class ResetPasswordScreen extends StatelessWidget {
+class ResetPasswordScreen extends ConsumerWidget {
   const ResetPasswordScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resetPasswordState = ref.watch(resetPasswordFormProvider);
+    final resetPasswordNotifier = ref.watch(resetPasswordFormProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: Colors.white10,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: ListView(
-          children: [
-            const SizedBox(height: 22),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    if (context.mounted) {
-                      context.go('/login');
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+    final textTheme = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: const CustomBackArrow(route: '/login'),
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Text(
+                      'Ingresa tu correo y te enviaremos un enlace para que puedas crear una nueva contraseña.\n¡Revisa tu bandeja de entrada!',
+                      textAlign: TextAlign.start,
+                      style: textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    // Campo para el correo
+                    CustomTextFormField(
+                      label: 'Introduce tu correo electrónico',
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: resetPasswordNotifier.onEmailChanged,
+                      errorMessage: resetPasswordState.isFormPosted
+                          ? resetPasswordState.email.errorMessage
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    // Botón de envío
+                    MUILoadingButton(
+                      text: resetPasswordState.isPosting
+                          ? 'Enviando...'
+                          : 'Enviar correo',
+                      loadingStateText: 'Enviando...',
+                      onPressed: resetPasswordState.isPosting
+                          ? null
+                          : () async {
+                              final success =
+                                  await resetPasswordNotifier.onFormSubmit();
+
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Se ha enviado un correo de recuperación de contraseña'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Hubo un error al enviar el correo. Inténtalo de nuevo.'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const Center(
-                child: Text('T',
-                    style: TextStyle(
-                        fontSize: 64,
-                        color: Colors.pink,
-                        fontWeight: FontWeight.bold))),
-            const SizedBox(height: 16),
-            const Text(
-                'Te llegará un correo para restablecer tu contraseña\n¡Estate atento!',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 16)),
-            const SizedBox(height: 24),
-            CustomTextField(
-              hintText: 'Introduce su correo electrónico',
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            CustomElevatedButton(
-                text: "Recuperar contraseña",
-                onPressed: () {
-                  resetPassword(emailController, context);
-                }),
-            const SizedBox(height: 16),
-          ],
+              )),
         ),
       ),
     );
-  }
-
-  void resetPassword(
-      TextEditingController emailController, BuildContext context) {
-    String email = emailController.text.trim();
-    if (email.isNotEmpty) {
-      AuthService authService = AuthService();
-      authService.resetPassword(email: email);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Se ha enviado un correo de recuperación de contraseña'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor introduce su correo electrónico'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 }

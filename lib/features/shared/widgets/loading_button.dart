@@ -21,7 +21,7 @@ class MUILoadingButton extends StatefulWidget {
   });
 
   final String text;
-  final Future<void> Function() onPressed;
+  final Future<void> Function()? onPressed;
   final String loadingStateText;
   final double borderRadius;
   final int animationDuration;
@@ -62,9 +62,10 @@ class _MUILoadingButtonState extends State<MUILoadingButton> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) async {
+        if (widget.onPressed == null) return;
         _startLoading();
         try {
-          await widget.onPressed();
+          await widget.onPressed!();
         } finally {
           _stopLoading();
         }

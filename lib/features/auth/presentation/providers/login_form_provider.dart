@@ -4,11 +4,11 @@ import 'package:formz/formz.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/features/shared/infrastructure/inputs/inputs.dart';
 
-final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+final loginAuthServiceProvider = Provider<AuthService>((ref) => AuthService());
 
 final loginFormProvider =
     StateNotifierProvider.autoDispose<LoginFormNotifier, LoginFormState>((ref) {
-  final authService = ref.watch(authServiceProvider);
+  final authService = ref.watch(loginAuthServiceProvider);
 
   return LoginFormNotifier(authService: authService);
 });
@@ -55,7 +55,6 @@ class LoginFormNotifier extends StateNotifier<LoginFormState> {
   }
 
   Future<bool> signInWithGoogle() async {
-    //_touchEveryField(); // para mostrar errores si los hubiera
     state = state.copyWith(isPosting: true);
 
     final loginSuccess = await authService.signInWithGoogle();

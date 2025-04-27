@@ -37,7 +37,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
   @override
   Widget build(BuildContext context) {
     final items = [
-      Icons.home_filled,
+      Icons.home_rounded,
       Icons.search_outlined,
       Icons.add_circle_outline,
       Icons.shopping_bag_outlined,
