@@ -51,15 +51,15 @@ class SignUpFormNotifier extends StateNotifier<SignUpFormState> {
       password: state.password.value,
     );
 
-    if (!signinSuccess) {
-      state = state.copyWith(isSubmitting: false);
-      return false;
-    }
-
-    final verified = await authService.isEmailVerified();
     state = state.copyWith(isSubmitting: false);
+    // if (!signinSuccess) {
+    //   return false;
+    // }
 
-    return verified;
+    // final verified = await authService.isEmailVerified();
+    // state = state.copyWith(isSubmitting: false);
+
+    return signinSuccess;
   }
 
   _touchEveryField() {

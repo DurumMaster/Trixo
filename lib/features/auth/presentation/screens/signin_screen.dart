@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,28 @@ class SignInScreen extends ConsumerWidget {
     final signUpForm = ref.watch(signUpFormProvider);
     final notifier = ref.read(signUpFormProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
+
+    Future<void> submit() async {
+      final created = await notifier.onFormSubmit();
+      if (!created && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Error al registrarte. Verifica los datos ingresados.',
+            ),
+          ),
+        );
+        return;
+      }
+      // Se envió el email de verificación: abrimos el diálogo
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const _EmailVerificationDialog(),
+        );
+      }
+    }
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -71,11 +94,7 @@ class SignInScreen extends ConsumerWidget {
                 MUILoadingButton(
                   text: 'Registrarme',
                   loadingStateText: 'Registrando...',
-                  onPressed: signUpForm.isSubmitting
-                      ? null
-                      : () async {
-                          await _submit(context, ref);
-                        },
+                  onPressed: signUpForm.isSubmitting ? null : submit,
                 ),
               ],
             ),
@@ -86,21 +105,79 @@ class SignInScreen extends ConsumerWidget {
   }
 }
 
-Future<void> _submit(BuildContext context, WidgetRef ref) async {
-  final verified = await ref.read(signUpFormProvider.notifier).onFormSubmit();
+class _EmailVerificationDialog extends StatefulWidget {
+  const _EmailVerificationDialog();
 
-  if (!verified && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Hubo un error al registrarte. Verifica los datos ingresados o confirma tu correo con el email enviado.',
-        ),
-      ),
-    );
-    return;
+  @override
+  State<_EmailVerificationDialog> createState() =>
+      _EmailVerificationDialogState();
+}
+
+class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
+  bool _checking = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Cada 3 segundos recargamos al usuario
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _reloadUser());
   }
 
-  if (context.mounted) {
-    context.go('/login');
+  Future<void> _reloadUser() async {
+    setState(() => _checking = true);
+    final verified = await AuthService().isEmailVerified();
+    setState(() => _checking = false);
+
+    if (verified) {
+      _timer?.cancel();
+      if (mounted) {
+        Navigator.of(context).pop(); // Cierra el diálogo
+        context.go('/home');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Verifica tu correo'),
+      content: const Text(
+        'Te hemos enviado un correo con un enlace de verificación.\n'
+        'Entra al enlace en tu email y para verificarte".',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            _timer?.cancel();
+            Navigator.of(context).pop(); // Cierra y regresa al registro
+          },
+          child: const Text('Cancelar'),
+        ),
+        MUILoadingButton(
+          text: 'He verificado',
+          loadingStateText: 'Verificando...',
+          onPressed: () async {
+            await _reloadUser();
+            if (!mounted) return;
+            if (!(await AuthService().isEmailVerified())) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Correo aún no verificado.'),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+      ],
+    );
   }
 }

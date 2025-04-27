@@ -25,6 +25,13 @@ class AuthService {
     }
   }
 
+  /// Recarga usuario y comprueba verificación
+  Future<bool> isEmailVerified() async {
+    final user = _firebaseAuth.currentUser;
+    await user?.reload();
+    return user?.emailVerified ?? false;
+  }
+
   Future<bool> signIn({
     //Login
     required String email,
@@ -74,13 +81,6 @@ class AuthService {
       log("Error al iniciar sesion con Google: $e", name: "AuthService");
       return false;
     }
-  }
-
-  Future<bool> isEmailVerified() async {
-    //Comprobar si se ha verificado
-    final user = _firebaseAuth.currentUser;
-    await user?.reload();
-    return user?.emailVerified ?? false;
   }
 
   Future<bool> resetPassword({
