@@ -23,7 +23,7 @@ final goRouterProvider = Provider((ref) {
       //*Auth Routes
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => LoginScreen(),
       ),
       GoRoute(
         path: '/signin',

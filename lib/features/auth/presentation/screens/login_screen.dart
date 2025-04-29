@@ -3,19 +3,50 @@ import 'package:trixo_frontend/features/auth/presentation/providers/providers.da
 import 'package:trixo_frontend/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:trixo_frontend/features/auth/presentation/screens/signin_screen.dart';
 import 'package:trixo_frontend/features/post/presentation/views/home_view.dart';
+import 'package:trixo_frontend/features/shared/widgets/auth_animation_widget.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_elevated_button.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_text_field.dart';
 import 'package:sign_button/sign_button.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});    
+  final GlobalKey<AuthAnimationWidgetState> animationKey = GlobalKey();
+  void switchAnimations(bool isFocus, String animation) async {
+    final current = animationKey.currentState?.currentAnimation;
+    if(isFocus){
+      if(animation == "email"){
+        if(current != "Hands_up"){
+          await animationKey.currentState?.switchAnimation("hands_down", 500);
+          await animationKey.currentState?.switchAnimation("idle", 250);
+        } else {
+          await animationKey.currentState?.switchAnimation("idle", 250);
+        }
+      } else if(animation == "password"){
+        if(current == "Hands_up"){
+          await animationKey.currentState?.switchAnimation("Hands_up", 500);
+        }
+      }
+    } else {
+      if(animation == "fail"){
+        if(current != "fail"){
+          await animationKey.currentState?.switchAnimation("fail", 500);
+        }
+      } else if(animation == "success"){
+        if(current != "success"){
+          await animationKey.currentState?.switchAnimation("success", 500);
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final FocusNode emailFocusNode = FocusNode();
+    final FocusNode passwordNode = FocusNode();
 
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
-  
+
     return Scaffold(
       backgroundColor: Colors.white10,
       body: Padding(
@@ -24,7 +55,7 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('T', style: TextStyle(fontSize: 64, color: Colors.pink, fontWeight: FontWeight.bold)),
+              AuthAnimationWidget(key: animationKey,),
               const SizedBox(height: 16),
               const Text('¡Hola!\nBienvenido a Trixo 👋',
                   textAlign: TextAlign.center,
@@ -36,6 +67,8 @@ class LoginScreen extends StatelessWidget {
                 hintText: 'Correo electrónico',
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
+                focusNode: emailFocusNode,
+                onFocusChange: (value) => switchAnimations(true, "email"),
               ),
               
               const SizedBox(height: 16),
@@ -45,6 +78,8 @@ class LoginScreen extends StatelessWidget {
                 obscureText: true,
                 controller: passwordController,
                 keyboardType: TextInputType.visiblePassword,
+                focusNode: passwordNode,
+                onFocusChange: (value) => switchAnimations(true, "password"),
               ),
               const SizedBox(height: 2),
 
@@ -111,12 +146,15 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
+
+
   void signInWithGoogle(BuildContext context) async {
     AuthService authService = AuthService();
     
     bool success = await authService.signInWithGoogle();
     
     if(success){
+      switchAnimations(false, "success");
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -124,6 +162,7 @@ class LoginScreen extends StatelessWidget {
         ),
       );
     } else {
+      switchAnimations(false, "fail");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Error al iniciar sesión con Google."),
@@ -155,6 +194,7 @@ class LoginScreen extends StatelessWidget {
                 duration: Duration(seconds: 2),
               ));
           } else {
+            switchAnimations(false, "success");
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -163,6 +203,7 @@ class LoginScreen extends StatelessWidget {
             );
           }
         } else {
+          switchAnimations(false, "fail");
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Error al iniciar sesión. Verifica tus credenciales."),

@@ -71,7 +71,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Colors.white.withOpacity(0.1)
+                  ? Colors.white.withValues(alpha: 0.2)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
