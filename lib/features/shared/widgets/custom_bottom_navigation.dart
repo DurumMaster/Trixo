@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trixo_frontend/config/theme/app_colors.dart';
 
 class CustomBottomNavigation extends StatefulWidget {
   const CustomBottomNavigation({super.key});
@@ -36,6 +37,8 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final items = [
       Icons.home_rounded,
       Icons.search_outlined,
@@ -58,9 +61,12 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
       type: BottomNavigationBarType.fixed,
       showSelectedLabels: false,
       showUnselectedLabels: false,
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.grey[600],
+      backgroundColor:
+          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      selectedItemColor:
+          isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+      unselectedItemColor:
+          isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
       elevation: 8,
       items: List.generate(5, (index) {
         final isSelected = selectedIndex == index;
@@ -69,12 +75,6 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOutBack,
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: AnimatedScale(
               scale: isSelected ? 1.2 : 1.0,
               duration: const Duration(milliseconds: 250),
