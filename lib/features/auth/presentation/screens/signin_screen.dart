@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
+import 'package:trixo_frontend/config/config.dart';
 
 class SignInScreen extends ConsumerWidget {
   const SignInScreen({super.key});
@@ -158,7 +159,14 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
             _timer?.cancel();
             Navigator.of(context).pop(); // Cierra y regresa al registro
           },
-          child: const Text('Cancelar'),
+          child: Text(
+            'Cancelar',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
+            ),
+          ),
         ),
         MUILoadingButton(
           text: 'He verificado',
