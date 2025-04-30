@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/features/auth/presentation/screens/reset_password_screen.dart';
@@ -9,20 +10,24 @@ import 'package:trixo_frontend/features/shared/widgets/custom_text_field.dart';
 import 'package:sign_button/sign_button.dart';
 
 class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});    
+  LoginScreen({super.key});
+
   final GlobalKey<AuthAnimationWidgetState> animationKey = GlobalKey();
+
   void switchAnimations(bool isFocus, String animation) async {
     final current = animationKey.currentState?.currentAnimation;
+    log("Current animation: $current", name: "LoginScreen");
     if(isFocus){
       if(animation == "email"){
-        if(current != "Hands_up"){
+        if(current == "Hands_up"){
           await animationKey.currentState?.switchAnimation("hands_down", 500);
-          await animationKey.currentState?.switchAnimation("idle", 250);
         } else {
-          await animationKey.currentState?.switchAnimation("idle", 250);
+          if(current != "idle"){
+            await animationKey.currentState?.switchAnimation("idle", 250);
+          }
         }
       } else if(animation == "password"){
-        if(current == "Hands_up"){
+        if(current != "Hands_up"){
           await animationKey.currentState?.switchAnimation("Hands_up", 500);
         }
       }
@@ -35,14 +40,16 @@ class LoginScreen extends StatelessWidget {
         if(current != "success"){
           await animationKey.currentState?.switchAnimation("success", 500);
         }
+      } else {
+        if(current != "idle"){
+          await animationKey.currentState?.switchAnimation("idle", 500);
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final FocusNode emailFocusNode = FocusNode();
-    final FocusNode passwordNode = FocusNode();
 
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
@@ -67,8 +74,7 @@ class LoginScreen extends StatelessWidget {
                 hintText: 'Correo electrónico',
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
-                focusNode: emailFocusNode,
-                onFocusChange: (value) => switchAnimations(true, "email"),
+                onTap: () => switchAnimations(true, "email"),
               ),
               
               const SizedBox(height: 16),
@@ -78,8 +84,7 @@ class LoginScreen extends StatelessWidget {
                 obscureText: true,
                 controller: passwordController,
                 keyboardType: TextInputType.visiblePassword,
-                focusNode: passwordNode,
-                onFocusChange: (value) => switchAnimations(true, "password"),
+                onTap: () => switchAnimations(true, "password"),
               ),
               const SizedBox(height: 2),
 
