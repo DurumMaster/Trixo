@@ -11,6 +11,7 @@ class CustomTextFormField extends StatefulWidget {
   final Function(String)? onChanged;
   final Function(String)? onFieldSubmitted;
   final String? Function(String?)? validator;
+  final VoidCallback? onTap;
 
   const CustomTextFormField({
     super.key,
@@ -23,6 +24,7 @@ class CustomTextFormField extends StatefulWidget {
     this.onChanged,
     this.onFieldSubmitted,
     this.validator,
+    this.onTap
   });
 
   @override

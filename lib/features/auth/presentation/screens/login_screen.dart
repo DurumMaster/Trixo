@@ -1,13 +1,51 @@
+import "dart:developer";
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sign_button/sign_button.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';
+import 'package:trixo_frontend/features/shared/widgets/auth_animation_widget.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 
 class LoginScreen extends ConsumerWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});
+
+  final GlobalKey<AuthAnimationWidgetState> animationKey = GlobalKey();
+
+  void switchAnimations(bool isFocus, String animation) async {
+    final current = animationKey.currentState?.currentAnimation;
+    log("Current animation: $current", name: "LoginScreen");
+    if(isFocus){
+      if(animation == "email"){
+        if(current == "Hands_up"){
+          await animationKey.currentState?.switchAnimation("hands_down", 500);
+        } else {
+          if(current != "idle"){
+            await animationKey.currentState?.switchAnimation("idle", 250);
+          }
+        }
+      } else if(animation == "password"){
+        if(current != "Hands_up"){
+          await animationKey.currentState?.switchAnimation("Hands_up", 500);
+        }
+      }
+    } else {
+      if(animation == "fail"){
+        if(current != "fail"){
+          await animationKey.currentState?.switchAnimation("fail", 500);
+        }
+      } else if(animation == "success"){
+        if(current != "success"){
+          await animationKey.currentState?.switchAnimation("success", 500);
+        }
+      } else {
+        if(current != "idle"){
+          await animationKey.currentState?.switchAnimation("idle", 500);
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,7 +63,7 @@ class LoginScreen extends ConsumerWidget {
             child: Column(
               children: [
                 const SizedBox(height: 100),
-                const Icon(Icons.account_circle_rounded, size: 100),
+                AuthAnimationWidget(key: animationKey),
                 const SizedBox(height: 50),
                 Text('¡Hola! Bienvenido a Trixo 👋',
                     style: textTheme.titleMedium),
@@ -37,6 +75,7 @@ class LoginScreen extends ConsumerWidget {
                   errorMessage: loginForm.isFormPosted
                       ? loginForm.email.errorMessage
                       : null,
+                  onTap: () => switchAnimations(true, "email"),
                 ),
                 const SizedBox(height: 20),
                 CustomTextFormField(
@@ -48,6 +87,7 @@ class LoginScreen extends ConsumerWidget {
                   errorMessage: loginForm.isFormPosted
                       ? loginForm.password.errorMessage
                       : null,
+                  onTap: () => switchAnimations(true, "password"),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
@@ -115,6 +155,7 @@ class LoginScreen extends ConsumerWidget {
     final verified = await ref.read(loginFormProvider.notifier).onFormSubmit();
 
     if (!verified && context.mounted) {
+      switchAnimations(false, "fail");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -135,6 +176,7 @@ class LoginScreen extends ConsumerWidget {
         await ref.read(loginFormProvider.notifier).signInWithGoogle();
 
     if (!verified && context.mounted) {
+      switchAnimations(false, "fail");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
