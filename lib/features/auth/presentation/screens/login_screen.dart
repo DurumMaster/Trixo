@@ -64,7 +64,7 @@ class LoginScreen extends ConsumerWidget {
               children: [
                 const SizedBox(height: 50),
                 AuthAnimationWidget(key: animationKey),
-                const SizedBox(height: 50),
+                const SizedBox(height: 25),
                 Text('¡Hola! Bienvenido a Trixo 👋',
                     style: textTheme.titleMedium),
                 const SizedBox(height: 50),

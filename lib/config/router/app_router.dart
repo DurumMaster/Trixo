@@ -12,7 +12,7 @@ final goRouterProvider = Provider((ref) {
 
   return GoRouter(
     //!TODO: TIENE QUE ACABAR SIENDO /SPLASH o /LOGIN
-    initialLocation: '/login',
+    initialLocation: '/home',
     refreshListenable: goRouterNotifier,
     routes: [
       //*Loading Screen
