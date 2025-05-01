@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import "package:rive/rive.dart";
 
 class AuthAnimationWidget extends StatefulWidget {
-  
-  const AuthAnimationWidget({Key? key}) : super(key: key);
+  const AuthAnimationWidget({super.key});
 
   @override
   State<AuthAnimationWidget> createState() => AuthAnimationWidgetState();
@@ -42,5 +41,4 @@ class AuthAnimationWidgetState extends State<AuthAnimationWidget> {
 
     await Future.delayed(Duration(milliseconds: duration));
   }
-
 }

@@ -23,7 +23,7 @@ final goRouterProvider = Provider((ref) {
       //*Auth Routes
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => LoginScreen(),
       ),
       GoRoute(
         path: '/signin',
@@ -51,32 +51,32 @@ final goRouterProvider = Provider((ref) {
           ])
     ],
     //* Bloquear si no se está autenticado de alguna manera
-    redirect: (context, state) {
-      // final isGoingTo = state.matchedLocation;
-      // final authStatus = goRouterNotifier.authStatus;
+    // redirect: (context, state) {
+    //   final isGoingTo = state.matchedLocation;
+    //   final authStatus = goRouterNotifier.authStatus;
 
-      // Se ponen las condiciones de las rutas (si estoy autenticado, si soy admin o no...)
+    //   //Se ponen las condiciones de las rutas (si estoy autenticado, si soy admin o no...)
 
-      // if (isGoingTo == '/splash' && authStatus == AuthStatus.checking) {
-      //   return null;
-      // }
+    //   if (isGoingTo == '/splash' && authStatus == AuthStatus.checking) {
+    //     return null;
+    //   }
 
-      // if (authStatus == AuthStatus.notAuthenticated) {
-      //   Si no está autenticado  y quiere ir a signin o login le dejo pasar
-      //   if (isGoingTo == '/login' || isGoingTo == '/signin') return null;
-      //   Pero si quiere ir a otro lado le redirijo a /login (evito que continue)
-      //   return '/login';
-      // }
+    //   if (authStatus == AuthStatus.notAuthenticated) {
+    //     //Si no está autenticado  y quiere ir a signin o login le dejo pasar
+    //     if (isGoingTo == '/login' || isGoingTo == '/signin') return null;
+    //     //Pero si quiere ir a otro lado le redirijo a /login (evito que continue)
+    //     return '/login';
+    //   }
 
-      // if (authStatus == AuthStatus.authenticated) {
-      //   if (isGoingTo == '/login' ||
-      //       isGoingTo == '/signin' ||
-      //       isGoingTo == '/splash') return '/home';
+    //   if (authStatus == AuthStatus.authenticated) {
+    //     if (isGoingTo == '/login' ||
+    //         isGoingTo == '/signin' ||
+    //         isGoingTo == '/splash') return '/home';
 
-      //   return null;
-      // }
+    //     return null;
+    //   }
 
-      return null;
-    },
+    //   return null;
+    // },
   );
 });

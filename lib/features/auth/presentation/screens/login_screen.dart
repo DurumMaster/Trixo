@@ -16,31 +16,31 @@ class LoginScreen extends ConsumerWidget {
   void switchAnimations(bool isFocus, String animation) async {
     final current = animationKey.currentState?.currentAnimation;
     log("Current animation: $current", name: "LoginScreen");
-    if(isFocus){
-      if(animation == "email"){
-        if(current == "Hands_up"){
+    if (isFocus) {
+      if (animation == "email") {
+        if (current == "Hands_up") {
           await animationKey.currentState?.switchAnimation("hands_down", 500);
         } else {
-          if(current != "idle"){
+          if (current != "idle") {
             await animationKey.currentState?.switchAnimation("idle", 250);
           }
         }
-      } else if(animation == "password"){
-        if(current != "Hands_up"){
+      } else if (animation == "password") {
+        if (current != "Hands_up") {
           await animationKey.currentState?.switchAnimation("Hands_up", 500);
         }
       }
     } else {
-      if(animation == "fail"){
-        if(current != "fail"){
+      if (animation == "fail") {
+        if (current != "fail") {
           await animationKey.currentState?.switchAnimation("fail", 500);
         }
-      } else if(animation == "success"){
-        if(current != "success"){
+      } else if (animation == "success") {
+        if (current != "success") {
           await animationKey.currentState?.switchAnimation("success", 500);
         }
       } else {
-        if(current != "idle"){
+        if (current != "idle") {
           await animationKey.currentState?.switchAnimation("idle", 500);
         }
       }
@@ -62,7 +62,7 @@ class LoginScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Column(
               children: [
-                const SizedBox(height: 100),
+                const SizedBox(height: 50),
                 AuthAnimationWidget(key: animationKey),
                 const SizedBox(height: 50),
                 Text('¡Hola! Bienvenido a Trixo 👋',
@@ -141,6 +141,7 @@ class LoginScreen extends ConsumerWidget {
                         },
                       ),
                     ),
+                    const SizedBox(height: 25),
                   ],
                 ),
               ],
