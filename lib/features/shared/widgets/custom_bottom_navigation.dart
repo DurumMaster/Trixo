@@ -30,7 +30,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
         context.go('/home');
         break;
       case 4:
-        context.go('/home');
+        context.go('/profile');
         break;
     }
   }

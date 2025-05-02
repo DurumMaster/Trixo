@@ -45,7 +45,11 @@ final goRouterProvider = Provider((ref) {
                 path: '/home',
                 builder: (context, state) => const HomeView(),
               ),
-
+              //* Profile View
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfileView(),
+              ),
               //TODO: Poner resto views del navbar
             ])
           ])
