@@ -8,12 +8,12 @@ import 'package:trixo_frontend/config/config.dart';
 
 class PostCard extends StatefulWidget {
   final List<String> imageUrls;
-  final String username;
-  final String avatarUrl;
+  final String? username;
+  final String? avatarUrl;
   final String description;
   final int likeCount;
   final int commentsCount;
-  final VoidCallback onDoubleTapImage;
+  //final VoidCallback? onDoubleTapImage;
 
   const PostCard({
     super.key,
@@ -23,7 +23,7 @@ class PostCard extends StatefulWidget {
     required this.description,
     required this.likeCount,
     required this.commentsCount,
-    required this.onDoubleTapImage,
+    //this.onDoubleTapImage,
   });
 
   @override
@@ -129,6 +129,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildImageSection(context),
+          _buildPageIndicators(),
           _buildUserHeader(),
           _buildDescriptionSection(),
           _buildCommentsSection(context),
@@ -139,42 +140,36 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
 
   BoxDecoration _buildCardDecoration(BuildContext context) => BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.surfaceDark
-            : AppColors.surfaceLight,
+            ? AppColors.backgroundDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(_cardRadius),
       );
 
   Widget _buildImageSection(BuildContext context) {
     return AspectRatio(
-        aspectRatio: 1,
-        child: GestureDetector(
-          onDoubleTap: () {
-            final random = Random();
-            setState(() {
-              _randomEmoji =
-                  _fashionEmojis[random.nextInt(_fashionEmojis.length)];
-            });
-
-            // Siempre reproduce la animación del corazón flotante
-            _animationController.forward(from: 0);
-
-            // Solo da like si no estaba activado previamente
-            if (!_isLiked) {
-              setState(() => _isLiked = true);
-              _controller.forward(); // Animación del icono
-              widget.onDoubleTapImage(); // Lógica futura (Firebase)
-            }
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              _buildImageCarousel(),
-              _buildLikeAnimation(),
-              if (widget.imageUrls.length > 1) _buildPageIndicators(),
-              _buildLikesBadge(context),
-            ],
+      aspectRatio: 1,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          GestureDetector(
+            onDoubleTap: () {
+              final random = Random();
+              setState(() => _randomEmoji =
+                  _fashionEmojis[random.nextInt(_fashionEmojis.length)]);
+              _animationController.forward(from: 0);
+              if (!_isLiked) {
+                setState(() => _isLiked = true);
+                _controller.forward();
+                //widget.onDoubleTapImage();
+              }
+            },
+            child: _buildImageCarousel(),
           ),
-        ));
+          _buildLikeAnimation(),
+          _buildLikesBadge(context),
+        ],
+      ),
+    );
   }
 
   Widget _buildImageCarousel() {
@@ -188,9 +183,9 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
           setState(() => _currentScale = details.scale.clamp(1.0, 5.0));
         },
         onScaleEnd: (_) {
-          _zoomController.animateTo(0,
-              duration: const Duration(milliseconds: 300))
-            .whenComplete(() => setState(() => _currentScale = 1.0));
+          _zoomController
+              .animateTo(0, duration: const Duration(milliseconds: 300))
+              .whenComplete(() => setState(() => _currentScale = 1.0));
         },
         child: Transform.scale(
           scale: _currentScale,
@@ -236,24 +231,28 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   }
 
   Widget _buildPageIndicators() {
-    return Positioned(
-      bottom: 10,
-      child: Wrap(
-        spacing: 4,
+    return Container(
+      margin: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
-            widget.imageUrls.length,
-            (i) => Container(
-                  width: _pageIndicatorSize,
-                  height: _pageIndicatorSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _currentPage == i
-                        ? AppColors.accent
-                        : Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.borderDark
-                            : AppColors.borderLight,
-                  ),
-                )),
+          widget.imageUrls.length,
+          (i) => Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: _pageIndicatorSize,
+            height: _pageIndicatorSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _currentPage == i
+                  ? Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.white
+                      : AppColors.black
+                  : Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.borderDark
+                      : AppColors.borderLight,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -287,7 +286,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
 
   Widget _buildUserHeader() {
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
       child: Row(
         children: [
           // Sección izquierda: Avatar y nombre
@@ -295,11 +294,11 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(widget.avatarUrl),
+                backgroundImage: NetworkImage(widget.avatarUrl ?? ""),
               ),
               const SizedBox(width: 12),
               Text(
-                widget.username,
+                widget.username ?? "Anonimo",
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
