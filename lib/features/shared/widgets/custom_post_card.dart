@@ -5,25 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:trixo_frontend/config/config.dart';
+import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 
 class PostCard extends StatefulWidget {
-  final List<String> imageUrls;
-  final String? username;
-  final String? avatarUrl;
-  final String description;
-  final int likeCount;
-  final int commentsCount;
-  //final VoidCallback? onDoubleTapImage;
+  final Post post;
+  final VoidCallback onLike;
 
   const PostCard({
     super.key,
-    required this.imageUrls,
-    required this.username,
-    required this.avatarUrl,
-    required this.description,
-    required this.likeCount,
-    required this.commentsCount,
-    //this.onDoubleTapImage,
+    required this.post,
+    required this.onLike,
   });
 
   @override
@@ -32,18 +23,11 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   late final PageController _pageController;
-
   late final AnimationController _animationController;
   late final Animation<double> _scaleAnimation;
-
-  int _currentPage = 0;
-  final double _cardRadius = 12;
-  final double _pageIndicatorSize = 6;
-  final Duration _animationDuration = const Duration(milliseconds: 300);
-
-  bool _isLiked = false;
-  late final AnimationController _controller;
+  late final AnimationController _likeController;
   late final Animation<double> _scaleAnimationLike;
+  late final AnimationController _zoomController;
 
   final List<String> _fashionEmojis = const [
     '🧢',
@@ -57,44 +41,51 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
     '🧊',
     '🔥',
   ];
-  String _randomEmoji = '🧢';
-  late String randomEmojis = '🧢🕶️🐐';
-  final random = Random();
 
+  int _currentPage = 0;
   double _currentScale = 1.0;
-  late AnimationController _zoomController;
+  String _randomEmoji = '🧢';
+  late String _randomEmojis;
+  final Random _random = Random();
+  final double _cardRadius = 12;
+  final double _pageIndicatorSize = 6;
+  final Duration _animationDuration = const Duration(milliseconds: 300);
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
-    _animationController =
-        AnimationController(vsync: this, duration: _animationDuration);
-    _scaleAnimation = _createScaleAnimation();
-    _setupAnimationListener();
+    _initializeControllers();
+    _setupAnimations();
+    _generateRandomEmojis();
+  }
 
-    _controller = AnimationController(
+  void _initializeControllers() {
+    _pageController = PageController(initialPage: 0, keepPage: false);
+    _zoomController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _scaleAnimationLike = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: _animationDuration,
     );
 
-    final shuffled = List<String>.from(_fashionEmojis)..shuffle(random);
-    randomEmojis = shuffled.take(3).join();
-
-    _zoomController = AnimationController(
+    _likeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
   }
 
-  Animation<double> _createScaleAnimation() => Tween<double>(begin: 0, end: 1.5)
-      .chain(CurveTween(curve: Curves.easeOut))
-      .animate(_animationController);
+  void _setupAnimations() {
+    _scaleAnimation = Tween<double>(begin: 0, end: 1.5)
+        .chain(CurveTween(curve: Curves.easeOut))
+        .animate(_animationController);
 
-  void _setupAnimationListener() {
+    _scaleAnimationLike = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _likeController, curve: Curves.elasticOut),
+    );
+
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         Future.delayed(_animationDuration, () {
@@ -104,20 +95,37 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
     });
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _animationController.dispose();
-    _controller.dispose();
-    _zoomController.dispose();
-    super.dispose();
+  void _generateRandomEmojis() {
+    final shuffled = List<String>.from(_fashionEmojis)..shuffle(_random);
+    _randomEmojis = shuffled.take(3).join();
   }
 
   void _handlePageChange(int page) {
     setState(() {
-      _currentScale = 1.0; // Resetear zoom al cambiar de imagen
+      _currentScale = 1.0;
       _currentPage = page;
     });
+  }
+
+  void _handleDoubleTap() {
+    setState(() {
+      _randomEmoji = _fashionEmojis[_random.nextInt(_fashionEmojis.length)];
+    });
+    _animationController.forward(from: 0);
+
+    if (!widget.post.isLiked) {
+      widget.onLike();
+      _likeController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _animationController.dispose();
+    _likeController.dispose();
+    _zoomController.dispose();
+    super.dispose();
   }
 
   @override
@@ -128,11 +136,11 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildImageSection(context),
+          _buildImageSection(),
           _buildPageIndicators(),
           _buildUserHeader(),
           _buildDescriptionSection(),
-          _buildCommentsSection(context),
+          _buildCommentsSection(),
         ],
       ),
     );
@@ -145,60 +153,91 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(_cardRadius),
       );
 
-  Widget _buildImageSection(BuildContext context) {
+  Widget _buildImageSection() {
     return AspectRatio(
       aspectRatio: 1,
       child: Stack(
         alignment: Alignment.center,
         children: [
           GestureDetector(
-            onDoubleTap: () {
-              final random = Random();
-              setState(() => _randomEmoji =
-                  _fashionEmojis[random.nextInt(_fashionEmojis.length)]);
-              _animationController.forward(from: 0);
-              if (!_isLiked) {
-                setState(() => _isLiked = true);
-                _controller.forward();
-                //widget.onDoubleTapImage();
-              }
-            },
+            onDoubleTap: _handleDoubleTap,
             child: _buildImageCarousel(),
           ),
           _buildLikeAnimation(),
-          _buildLikesBadge(context),
+          _buildLikesBadge(),
         ],
       ),
     );
   }
 
   Widget _buildImageCarousel() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PageView.builder(
       controller: _pageController,
+      physics: const ClampingScrollPhysics(),
       onPageChanged: _handlePageChange,
-      itemCount: widget.imageUrls.length,
-      itemBuilder: (_, index) => GestureDetector(
-        onScaleStart: (_) => _zoomController.stop(),
-        onScaleUpdate: (details) {
-          setState(() => _currentScale = details.scale.clamp(1.0, 5.0));
-        },
-        onScaleEnd: (_) {
-          _zoomController
-              .animateTo(0, duration: const Duration(milliseconds: 300))
-              .whenComplete(() => setState(() => _currentScale = 1.0));
-        },
-        child: Transform.scale(
-          scale: _currentScale,
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: CachedNetworkImage(
-              imageUrl: widget.imageUrls[index],
-              fit: BoxFit.cover,
-              width: double.infinity,
-              progressIndicatorBuilder: (_, __, ___) =>
-                  const Center(child: CircularProgressIndicator()),
-              errorWidget: (_, __, ___) =>
-                  const Icon(Icons.broken_image, size: 50),
+      itemCount: widget.post.images.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onScaleStart: (_) => _zoomController.stop(),
+          onScaleUpdate: (details) {
+            setState(() => _currentScale = details.scale.clamp(1.0, 5.0));
+          },
+          onScaleEnd: (_) {
+            _zoomController
+                .animateTo(0)
+                .whenComplete(() => setState(() => _currentScale = 1.0));
+          },
+          child: Transform.scale(
+            scale: _currentScale,
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: CachedNetworkImage(
+                imageUrl: widget.post.images[index],
+                fit: BoxFit.cover,
+                width: double.infinity,
+                progressIndicatorBuilder: (_, __, ___) => Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isDark ? AppColors.white : AppColors.black,
+                    ),
+                  ),
+                ),
+                errorWidget: (_, __, ___) => Icon(
+                  Icons.replay_rounded,
+                  size: 50,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLikeAnimation() {
+    return FadeTransition(
+      opacity: _animationController.drive(Tween(begin: 0.0, end: 1.0)),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Transform.rotate(
+          angle: _random.nextDouble() * 0.4 - 0.2,
+          child: Text(
+            _randomEmoji,
+            style: const TextStyle(
+              fontSize: 64,
+              shadows: [
+                Shadow(
+                  blurRadius: 10,
+                  color: Colors.black45,
+                  offset: Offset(0, 2),
+                )
+              ],
             ),
           ),
         ),
@@ -206,37 +245,17 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildLikeAnimation() {
-    return FadeTransition(
-        opacity: _animationController.drive(Tween(begin: 0.0, end: 1.0)),
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Transform.rotate(
-            angle: random.nextDouble() * 0.4 - 0.2,
-            child: Text(
-              _randomEmoji,
-              style: const TextStyle(
-                fontSize: 64,
-                shadows: [
-                  Shadow(
-                    blurRadius: 10,
-                    color: Colors.black45,
-                    offset: Offset(0, 2),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ));
-  }
-
   Widget _buildPageIndicators() {
+    if (widget.post.images.length <= 1) {
+      return const SizedBox(height: 10);
+    }
+
     return Container(
       margin: const EdgeInsets.only(top: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
-          widget.imageUrls.length,
+          widget.post.images.length,
           (i) => Container(
             margin: const EdgeInsets.symmetric(horizontal: 4),
             width: _pageIndicatorSize,
@@ -257,7 +276,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildLikesBadge(BuildContext context) {
+  Widget _buildLikesBadge() {
     return Positioned(
       top: 12,
       left: 12,
@@ -270,10 +289,10 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
         child: RichText(
           text: TextSpan(
             children: [
-              TextSpan(text: randomEmojis),
+              TextSpan(text: _randomEmojis),
               const WidgetSpan(child: SizedBox(width: 4)),
               TextSpan(
-                text: HumanFormats.number(widget.likeCount),
+                text: HumanFormats.number(widget.post.likesCount),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -289,37 +308,32 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       padding: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
       child: Row(
         children: [
-          // Sección izquierda: Avatar y nombre
           Row(
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(widget.avatarUrl ?? ""),
+                backgroundImage:
+                    NetworkImage(widget.post.user?.avatarImg ?? ""),
               ),
               const SizedBox(width: 12),
               Text(
-                widget.username ?? "Anonimo",
+                widget.post.user?.username ?? "Anónimo",
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
           ),
-
-          // Espacio flexible para empujar los botones a la derecha
-          Expanded(child: Container()),
-
-          // Botones de acción
-          _buildActionButtons(context),
+          const Expanded(child: SizedBox()),
+          _buildActionButtons(),
         ],
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildIconButton(
-          //TODO: arreglar para utilizar svg send
           icon: Icons.send_rounded,
           onPressed: () {},
         ),
@@ -330,27 +344,17 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   }
 
   Widget _buildAnimatedLikeButton() {
-    const double likeIconSize = 26.0;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isLiked = !_isLiked;
-          if (_isLiked) {
-            _controller.forward();
-          } else {
-            _controller.reverse();
-          }
-        });
-      },
+      onTap: widget.onLike,
       child: AnimatedBuilder(
-        animation: _controller,
+        animation: _likeController,
         builder: (context, child) {
           return Transform.scale(
             scale: _scaleAnimationLike.value,
             child: Icon(
-              _isLiked ? Icons.favorite : Icons.favorite_border,
-              size: likeIconSize,
-              color: _isLiked ? Colors.red : Theme.of(context).iconTheme.color,
+              widget.post.isLiked ? Icons.favorite : Icons.favorite_border,
+              size: 26,
+              color: widget.post.isLiked ? Colors.red : null,
             ),
           );
         },
@@ -358,9 +362,12 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildIconButton(
-      {required dynamic icon, required VoidCallback onPressed}) {
+  Widget _buildIconButton({
+    required dynamic icon,
+    required VoidCallback onPressed,
+  }) {
     const double iconSize = 26.0;
+
     if (icon is String) {
       return IconButton(
         icon: SvgPicture.asset(
@@ -376,35 +383,37 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
         onPressed: onPressed,
       );
     }
+
     return IconButton(
-        icon: Icon(icon),
-        iconSize: iconSize,
-        padding: EdgeInsets.zero,
-        onPressed: onPressed);
+      icon: Icon(icon),
+      iconSize: iconSize,
+      padding: EdgeInsets.zero,
+      onPressed: onPressed,
+    );
   }
 
   Widget _buildDescriptionSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Text(
-        widget.description,
+        widget.post.caption,
         style: Theme.of(context).textTheme.bodyLarge,
       ),
     );
   }
 
-  Widget _buildCommentsSection(BuildContext context) {
+  Widget _buildCommentsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Visibility(
-        visible: widget.commentsCount > 0,
+        visible: widget.post.commentsCount > 0,
         child: GestureDetector(
           onTap: () {},
           child: Text(
             Intl.plural(
-              widget.commentsCount,
+              widget.post.commentsCount,
               one: 'Ver todos los comentarios',
-              other: 'Ver los ${widget.commentsCount} comentarios',
+              other: 'Ver los ${widget.post.commentsCount} comentarios',
             ),
             style: TextStyle(
               color: Theme.of(context).brightness == Brightness.dark

@@ -31,4 +31,17 @@ class PostDatasourceImpl extends PostDatasource {
 
     return posts;
   }
+
+  @override
+  Future<Post> toggleLike(String postId) async {
+    try {
+      final response = await dio.post('/posts/$postId/like');
+      return PostMapper.postJsonToEntity(response.data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw Exception('No autenticado');
+      }
+      throw Exception('Error al actualizar el like: ${e.message}');
+    }
+  }
 }

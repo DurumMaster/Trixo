@@ -1,7 +1,7 @@
 import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
 
 class Post {
-  final int id;
+  final String id;
   final String caption;
   final List<String> images;
   final String createdAt;
@@ -9,20 +9,21 @@ class Post {
   final int commentsCount;
   final List<String> tags;
   final User? user;
+  final bool isLiked;
 
-  Post({
-    required this.id,
-    required this.caption,
-    required this.images,
-    required this.createdAt,
-    required this.likesCount,
-    required this.commentsCount,
-    required this.tags,
-    this.user,
-  });
+  Post(
+      {required this.id,
+      required this.caption,
+      required this.images,
+      required this.createdAt,
+      required this.likesCount,
+      required this.commentsCount,
+      required this.tags,
+      this.user,
+      required this.isLiked});
 
   Post copyWith({
-    int? id,
+    String? id,
     String? caption,
     List<String>? images,
     String? createdAt,
@@ -30,6 +31,7 @@ class Post {
     int? commentsCount,
     List<String>? tags,
     User? user,
+    bool? isLiked,
   }) {
     return Post(
       id: id ?? this.id,
@@ -40,6 +42,7 @@ class Post {
       commentsCount: commentsCount ?? this.commentsCount,
       tags: tags ?? this.tags,
       user: user ?? this.user,
+      isLiked: isLiked ?? this.isLiked,
     );
   }
 }

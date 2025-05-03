@@ -9,4 +9,9 @@ class PostRepositoryImpl extends PostRepository {
   Future<List<Post>> getPostsByPageRanking({int limit = 10, int offset = 0}) {
     return datasource.getPostsByPageRanking(limit: limit, offset: offset);
   }
+
+  @override
+  Future<Post> toggleLike(String postId) async {
+    return await datasource.toggleLike(postId);
+  }
 }

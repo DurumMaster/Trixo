@@ -2,8 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
-final postProvider =
-    StateNotifierProvider<PostNotifier,PostState>((ref) {
+final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   final repository = ref.watch(postRepositoryProvider);
   return PostNotifier(repository: repository);
 });
@@ -97,8 +96,8 @@ class PostNotifier extends StateNotifier<PostState> {
 
     state = state.copyWith(currentSection: section);
 
-    final sectionState = state.sections[section]!;
-    if (sectionState.posts.isEmpty && !sectionState.isLoading) {
+    final sectionState = state.sections[section] ?? const SectionState();
+    if (sectionState.posts.isEmpty) {
       loadNextPage();
     }
   }
@@ -175,5 +174,40 @@ class PostNotifier extends StateNotifier<PostState> {
     );
 
     await loadNextPage();
+  }
+
+  Future<void> toggleLike(String postId) async {
+    try {
+      // Actualización optimista
+      state = _updatePostInState(
+          postId,
+          (post) => post.copyWith(
+              isLiked: !post.isLiked,
+              likesCount: post.likesCount + (post.isLiked ? -1 : 1)));
+
+      await repository.toggleLike(postId);
+    } catch (e) {
+      // Rollback
+      state = _updatePostInState(
+          postId,
+          (post) => post.copyWith(
+              isLiked: !post.isLiked,
+              likesCount: post.likesCount - (post.isLiked ? -1 : 1)));
+      rethrow;
+    }
+  }
+
+  PostState _updatePostInState(String postId, Post Function(Post) updateFn) {
+    final newSections = Map<HomeSection, SectionState>.from(state.sections);
+
+    for (final section in newSections.keys) {
+      final posts = newSections[section]!.posts.map((post) {
+        return post.id == postId ? updateFn(post) : post;
+      }).toList();
+
+      newSections[section] = newSections[section]!.copyWith(posts: posts);
+    }
+
+    return state.copyWith(sections: newSections);
   }
 }

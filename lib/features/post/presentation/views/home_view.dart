@@ -14,34 +14,54 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView> {
   final PageController _pageController = PageController();
-  final ScrollController _scrollController = ScrollController();
+  final Map<HomeSection, ScrollController> _scrollControllers = {
+    HomeSection.forYou: ScrollController(),
+    HomeSection.top: ScrollController(),
+    HomeSection.following: ScrollController(),
+  };
   int _selectedTab = 0;
   final List<String> _tabs = ['Para tí', 'Top', 'Siguiendo'];
 
   @override
   void initState() {
     super.initState();
+    _setupScrollListeners();
+  }
+
+  void _setupScrollListeners() {
+    for (final controller in _scrollControllers.values) {
+      controller.addListener(() {
+        final currentState = ref.read(postProvider);
+        final currentSection = currentState.currentSection;
+
+        if (controller != _scrollControllers[currentSection]) return;
+
+        final sectionState = currentState.sections[currentSection]!;
+        final position = controller.position;
+
+        if (position.pixels >= position.maxScrollExtent - 300 &&
+            !sectionState.isLoading &&
+            !sectionState.isLastPage) {
+          ref.read(postProvider.notifier).loadNextPage();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-              _scrollController.position.maxScrollExtent - 200 &&
-          !ref
-              .read(postProvider)
-              .sections[ref.read(postProvider).currentSection]!
-              .isLoading &&
-          !ref
-              .read(postProvider)
-              .sections[ref.read(postProvider).currentSection]!
-              .isLastPage) {
-        ref.read(postProvider.notifier).loadNextPage();
-      }
-    });
-    _scrollController.dispose();
+    for (var c in _scrollControllers.values) {
+      c.dispose();
+    }
     _pageController.dispose();
     super.dispose();
+  }
+
+  Widget _buildSectionPage(HomeSection section) {
+    return _PostsSection(
+      section: section,
+      scrollController: _scrollControllers[section]!,
+    );
   }
 
   void _onTabSelected(int index) {
@@ -60,11 +80,24 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   Widget build(BuildContext context) {
     final postState = ref.watch(postProvider);
-    return postState.sections[postState.currentSection]!.isLoading
-        ? const Center(
-            child: CircularProgressIndicator(),
-          )
-        : _buildContent(postState);
+    final isLoading = postState.sections[postState.currentSection]!.isLoading;
+
+    return Stack(
+      children: [
+        _buildContent(postState),
+        if (isLoading)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _buildContent(PostState state) {
@@ -144,33 +177,83 @@ class _HomeViewState extends ConsumerState<HomeView> {
             ],
           ),
           body: PageView.builder(
+            physics: const ClampingScrollPhysics(),
+            itemCount: HomeSection.values.length,
             controller: _pageController,
             onPageChanged: (index) {
               final section = HomeSection.values[index];
               ref.read(postProvider.notifier).setCurrentSection(section);
+              setState(() {
+                _selectedTab = index;
+              });
             },
             itemBuilder: (context, index) {
-              final section = HomeSection.values[index];
-              final sectionPosts = state.sections[section]!.posts;
-
-              return ListView.builder(
-                controller: _scrollController,
-                itemCount: sectionPosts.length,
-                itemBuilder: (context, i) {
-                  final post = sectionPosts[i];
-                  return PostCard(
-                    imageUrls: post.images,
-                    username: post.user?.username,
-                    avatarUrl: post.user?.avatarImg,
-                    description: post.caption,
-                    likeCount: post.likesCount,
-                    commentsCount: post.commentsCount,
-                  );
-                },
-              );
+              return _buildSectionPage(HomeSection.values[index]);
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PostsSection extends ConsumerStatefulWidget {
+  final HomeSection section;
+  final ScrollController scrollController;
+
+  const _PostsSection({
+    required this.section,
+    required this.scrollController,
+  });
+
+  @override
+  ConsumerState<_PostsSection> createState() => _PostsSectionState();
+}
+
+class _PostsSectionState extends ConsumerState<_PostsSection>
+    with AutomaticKeepAliveClientMixin {
+  final PageStorageKey _pageStorageKey = PageStorageKey(UniqueKey());
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final state = ref.watch(postProvider);
+    final posts = state.sections[widget.section]!.posts;
+    final isLoading = state.sections[widget.section]!.isLoading;
+
+    return Stack(
+      children: [
+        ListView.builder(
+          key: _pageStorageKey,
+          controller: widget.scrollController,
+          itemCount: posts.length,
+          itemBuilder: (context, i) {
+            return PostCard(
+              post: posts[i],
+              onLike: () =>
+                  ref.read(postProvider.notifier).toggleLike(posts[i].id),
+            );
+          },
+        ),
+        // if (isLoading)
+        //   Positioned(
+        //     bottom: 20,
+        //     left: 0,
+        //     right: 0,
+        //     child: _buildLoadingIndicator(),
+        //   ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: CircularProgressIndicator(),
       ),
     );
   }
