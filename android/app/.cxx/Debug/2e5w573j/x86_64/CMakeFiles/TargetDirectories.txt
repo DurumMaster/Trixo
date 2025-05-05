@@ -1,0 +1,2 @@
+D:/FP_DAM/TFC/Trixo/android/app/.cxx/Debug/2e5w573j/x86_64/CMakeFiles/edit_cache.dir
+D:/FP_DAM/TFC/Trixo/android/app/.cxx/Debug/2e5w573j/x86_64/CMakeFiles/rebuild_cache.dir

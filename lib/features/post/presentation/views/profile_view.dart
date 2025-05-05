@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_service.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -9,7 +11,7 @@ class ProfileView extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
-            // Acción al presionar el botón
+            logOut(context);
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
@@ -18,5 +20,11 @@ class ProfileView extends StatelessWidget {
         ),
       ),
     );
+  }
+  
+  void logOut(BuildContext context) {
+    AuthService authService = AuthService();
+    authService.signOut();
+    context.go('/login');
   }
 }
