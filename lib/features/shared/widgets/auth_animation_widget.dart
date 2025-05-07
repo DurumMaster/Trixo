@@ -24,7 +24,7 @@ class AuthAnimationWidgetState extends State<AuthAnimationWidget> {
       height: 200,
       width: 200,
       child: RiveAnimation.asset(
-        "assets/animations/animated_login_character.riv",
+        "assets/animations/click_for_hat.riv",
         controllers: [_controller],
       ),
     );

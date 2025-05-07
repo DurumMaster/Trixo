@@ -334,7 +334,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildIconButton(
-          icon: Icons.send_rounded,
+          icon: 'assets/icons/send.svg',
           onPressed: () {},
         ),
         const SizedBox(width: 5),

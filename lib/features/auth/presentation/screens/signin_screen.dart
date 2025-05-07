@@ -133,6 +133,7 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
     if (verified) {
       _timer?.cancel();
       if (mounted) {
+        
         Navigator.of(context).pop(); // Cierra el diálogo
         context.go('/home');
       }

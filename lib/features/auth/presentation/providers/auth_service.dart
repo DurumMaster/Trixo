@@ -121,7 +121,6 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    //Logout
     await _firebaseAuth.signOut();
     await _googleSignIn.signOut();
     _authState.copyWith(authStatus: AuthStatus.notAuthenticated, userId: null);
@@ -130,5 +129,10 @@ class AuthService {
 
   User? get currentUser {
     return _firebaseAuth.currentUser;
+  }
+
+  Future<bool> isLoggedIn() async {
+    final user = _firebaseAuth.currentUser;
+    return user != null;
   }
 }

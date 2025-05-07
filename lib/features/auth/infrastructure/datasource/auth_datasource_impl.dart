@@ -1,0 +1,48 @@
+import 'package:dio/dio.dart';
+import 'package:trixo_frontend/config/config.dart';
+import 'package:trixo_frontend/features/auth/domain/datasource/auth_datasource.dart';
+
+class AuthDatasourceImpl extends AuthDataSource {
+  late final Dio dio;
+  final Future<String?> Function() getAccessToken;
+
+  AuthDatasourceImpl({required this.getAccessToken})
+      : dio = Dio(BaseOptions(baseUrl: Environment.apiUrl)) {
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final token = await getAccessToken();
+        options.headers['Authorization'] = 'Bearer $token';
+        return handler.next(options);
+      },
+    ));
+  }
+
+  @override
+  Future<void> registerUser({
+    required String email,
+    required String username,
+    required String password,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/users/register',
+        data: {
+          'email': email,
+          'username': username,
+          'password': password,
+        },
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception('Failed to register user');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        throw Exception('Invalid input: ${e.response?.data}');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Server error: ${e.response?.data}');
+      }
+      throw Exception('Error during registration: ${e.message}');
+    }
+  }
+}

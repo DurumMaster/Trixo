@@ -64,7 +64,7 @@ flutter:
   assets:
     - .env
     - assets/images/google_icon.png
-    - assets/icons/
+    - assets/icons/send.svg
     - assets/animations/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
