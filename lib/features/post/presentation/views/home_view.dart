@@ -17,10 +17,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
   final Map<HomeSection, ScrollController> _scrollControllers = {
     HomeSection.forYou: ScrollController(),
     HomeSection.top: ScrollController(),
-    HomeSection.following: ScrollController(),
+    HomeSection.recents: ScrollController(),
   };
   int _selectedTab = 0;
-  final List<String> _tabs = ['Para tí', 'Top', 'Siguiendo'];
+  final List<String> _tabs = ['Para tí', 'Top', 'Nuevos'];
 
   @override
   void initState() {
@@ -168,13 +168,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.search,
-                    color: isDark ? AppColors.white : AppColors.black),
-                onPressed: () {},
-              ),
-            ],
+            // actions: [
+            //   IconButton(
+            //     icon: Icon(Icons.search,
+            //         color: isDark ? AppColors.white : AppColors.black),
+            //     onPressed: () {},
+            //   ),
+            // ],
           ),
           body: PageView.builder(
             physics: const ClampingScrollPhysics(),
@@ -222,7 +222,7 @@ class _PostsSectionState extends ConsumerState<_PostsSection>
     super.build(context);
     final state = ref.watch(postProvider);
     final posts = state.sections[widget.section]!.posts;
-    final isLoading = state.sections[widget.section]!.isLoading;
+    //final isLoading = state.sections[widget.section]!.isLoading;
 
     return Stack(
       children: [

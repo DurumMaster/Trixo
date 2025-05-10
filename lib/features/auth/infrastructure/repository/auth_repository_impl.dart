@@ -18,4 +18,9 @@ class AuthRepositoryImpl extends AuthRepository {
       password: password,
     );
   }
+
+  @override
+  Future<void> saveUserPreferences({required List<String> preferences}) {
+    return datasource.saveUserPreferences(preferences: preferences);
+  }
 }

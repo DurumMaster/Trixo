@@ -372,14 +372,16 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       return IconButton(
         icon: SvgPicture.asset(
           icon,
-          width: 32,
-          height: 32,
-          colorFilter: const ColorFilter.mode(
-            Colors.red,
+          width: 26,
+          height: 26,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).brightness == Brightness.dark
+                ? AppColors.white
+                : AppColors.black,
             BlendMode.srcIn,
           ),
         ),
-        iconSize: iconSize + 8,
+        iconSize: iconSize,
         onPressed: onPressed,
       );
     }

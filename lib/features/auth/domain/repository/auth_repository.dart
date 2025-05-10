@@ -5,4 +5,8 @@ abstract class AuthRepository {
     required String username,
     required String password,
   });
+
+  Future<void> saveUserPreferences({
+    required List<String> preferences,
+  });
 }

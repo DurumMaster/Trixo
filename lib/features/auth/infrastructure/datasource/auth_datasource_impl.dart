@@ -45,4 +45,11 @@ class AuthDatasourceImpl extends AuthDataSource {
       throw Exception('Error during registration: ${e.message}');
     }
   }
+
+  @override
+  Future<void> saveUserPreferences({required List<String> preferences}) {
+    //Realizar llamada a la API para guardar preferencias del usuario
+    //final response = await dio.post('/users/register');
+    throw UnimplementedError();
+  }
 }

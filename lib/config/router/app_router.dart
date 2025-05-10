@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trixo_frontend/features/auth/presentation/screens/onboarding_screen.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/screens/screens.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
@@ -32,6 +33,10 @@ final goRouterProvider = Provider((ref) {
       GoRoute(
         path: '/reset_password',
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingPreferencesView(),
       ),
       //* Views NavBar
       StatefulShellRoute.indexedStack(

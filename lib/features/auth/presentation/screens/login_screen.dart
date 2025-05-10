@@ -20,7 +20,8 @@ class LoginScreen extends ConsumerWidget {
     if (isFocus) {
       if (animation == "email") {
         if (current == "SwitchDefault") {
-          await animationKey.currentState?.switchAnimation("SwitchDefault", 500);
+          await animationKey.currentState
+              ?.switchAnimation("SwitchDefault", 500);
         } else {
           if (current != "idle") {
             await animationKey.currentState?.switchAnimation("idle", 250);
@@ -81,7 +82,8 @@ class LoginScreen extends ConsumerWidget {
                     CustomTextFormField(
                       label: 'Correo',
                       keyboardType: TextInputType.emailAddress,
-                      onChanged: ref.read(loginFormProvider.notifier).onEmailChanged,
+                      onChanged:
+                          ref.read(loginFormProvider.notifier).onEmailChanged,
                       errorMessage: ref.watch(loginFormProvider).isFormPosted
                           ? ref.watch(loginFormProvider).email.errorMessage
                           : null,
@@ -92,7 +94,8 @@ class LoginScreen extends ConsumerWidget {
                       label: 'Contraseña',
                       showPasswordToggle: true,
                       obscureText: true,
-                      onChanged: ref.read(loginFormProvider.notifier).onPasswordChange,
+                      onChanged:
+                          ref.read(loginFormProvider.notifier).onPasswordChange,
                       onFieldSubmitted: (_) => _submit(context, ref),
                       errorMessage: ref.watch(loginFormProvider).isFormPosted
                           ? ref.watch(loginFormProvider).password.errorMessage
@@ -109,10 +112,11 @@ class LoginScreen extends ConsumerWidget {
                         },
                         child: Text(
                           '¿Olvidaste tu contraseña?',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                                decoration: TextDecoration.underline,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey,
+                                    decoration: TextDecoration.underline,
+                                  ),
                         ),
                       ),
                     ),

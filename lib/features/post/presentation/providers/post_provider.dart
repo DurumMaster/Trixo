@@ -7,7 +7,7 @@ final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   return PostNotifier(repository: repository);
 });
 
-enum HomeSection { forYou, top, following }
+enum HomeSection { forYou, top, recents }
 
 class SectionState {
   final bool isLastPage;
@@ -79,7 +79,7 @@ class PostNotifier extends StateNotifier<PostState> {
           sections: {
             HomeSection.forYou: SectionState(),
             HomeSection.top: SectionState(),
-            HomeSection.following: SectionState(),
+            HomeSection.recents: SectionState(),
           },
           limit: 10,
           currentSection: HomeSection.forYou,
@@ -131,7 +131,7 @@ class PostNotifier extends StateNotifier<PostState> {
             offset: sectionState.offset,
           );
           break;
-        case HomeSection.following:
+        case HomeSection.recents:
           // TODO: CAMBIAR CON EL METODO PARA FOLLOWING
           posts = await repository.getPostsByPageRanking(
             limit: state.limit,
