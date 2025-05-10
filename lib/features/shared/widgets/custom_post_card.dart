@@ -43,8 +43,6 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   ];
 
   int _currentPage = 0;
-  double _overlayScale = 0.8;
-  double _currentScale = 1.0;
   String _randomEmoji = '🧢';
   late String _randomEmojis;
   final Random _random = Random();
@@ -52,16 +50,31 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   final double _pageIndicatorSize = 6;
   final Duration _animationDuration = const Duration(milliseconds: 300);
 
+  late final AnimationController _overlayPopupController;
+  late final Animation<double> _overlayPopupAnimation;
+
   @override
   void initState() {
     super.initState();
     _initializeControllers();
     _setupAnimations();
     _generateRandomEmojis();
+    _overlayPopupController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _overlayPopupAnimation = Tween<double>(begin: 0.0, end: 1.5).animate(
+      CurvedAnimation(
+        parent: _overlayPopupController,
+        curve: Curves.easeOutBack,
+      ),
+    );
   }
 
   void _initializeControllers() {
     _pageController = PageController(initialPage: 0, keepPage: false);
+
     _zoomController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -103,7 +116,6 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
 
   void _handlePageChange(int page) {
     setState(() {
-      _currentScale = 1.0;
       _currentPage = page;
     });
   }
@@ -126,6 +138,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
     _animationController.dispose();
     _likeController.dispose();
     _zoomController.dispose();
+    _overlayPopupController.dispose();
     super.dispose();
   }
 
@@ -217,34 +230,30 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   OverlayEntry? _zoomOverlay;
 
   void _showZoomOverlay(String imageUrl, Offset _) {
+    _overlayPopupController.forward(from: 0);
+
     _zoomOverlay = OverlayEntry(
       builder: (context) {
         return GestureDetector(
           onTap: _removeZoomOverlay,
           onLongPressEnd: (_) => _removeZoomOverlay(),
-          child: AnimatedOpacity(
-            opacity: 1,
-            duration: const Duration(milliseconds: 100),
-            child: Container(
-              color: Colors.black.withOpacity(0.95),
-              child: Center(
-                child: AnimatedScale(
-                  scale: 1.5,
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                  child: Hero(
-                    tag: imageUrl,
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.contain,
-                      errorWidget: (_, __, ___) => const Icon(
-                        Icons.broken_image,
-                        size: 50,
-                        color: Colors.white,
-                      ),
-                      progressIndicatorBuilder: (_, __, ___) =>
-                          const CircularProgressIndicator(color: Colors.white),
+          child: Container(
+            color: Colors.black.withOpacity(0.95),
+            child: Center(
+              child: ScaleTransition(
+                scale: _overlayPopupAnimation,
+                child: Hero(
+                  tag: imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.contain,
+                    errorWidget: (_, __, ___) => const Icon(
+                      Icons.broken_image,
+                      size: 50,
+                      color: Colors.white,
                     ),
+                    progressIndicatorBuilder: (_, __, ___) =>
+                        const CircularProgressIndicator(color: Colors.white),
                   ),
                 ),
               ),
