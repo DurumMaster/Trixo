@@ -20,7 +20,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
     HomeSection.recents: ScrollController(),
   };
   int _selectedTab = 0;
-  final List<String> _tabs = ['Para tí', 'Top', 'Nuevos'];
+  final List<String> _tabs = ['Para tí', 'Top', 'Novedades'];
 
   @override
   void initState() {
