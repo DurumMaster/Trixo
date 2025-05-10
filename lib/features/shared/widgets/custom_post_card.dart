@@ -181,8 +181,8 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       itemCount: widget.post.images.length,
       itemBuilder: (context, index) {
         return GestureDetector(
-          onLongPressStart: (_) {
-            _showZoomOverlay(widget.post.images[index]);
+          onLongPressStart: (details) {
+            _showZoomOverlay(widget.post.images[index], details.globalPosition);
           },
           onLongPressEnd: (_) {
             _removeZoomOverlay();
@@ -216,77 +216,51 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
 
   OverlayEntry? _zoomOverlay;
 
- void _showZoomOverlay(String imageUrl) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-
-  _overlayScale = 0.8;
-
-  _zoomOverlay = OverlayEntry(
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setOverlayState) {
-          Future.delayed(Duration.zero, () {
-            setOverlayState(() {
-              _overlayScale = 1.0;
-            });
-          });
-
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: _removeZoomOverlay,
-                  child: AnimatedOpacity(
-                    opacity: 1.0,
-                    duration: const Duration(milliseconds: 150),
-                    child: Container(
-                      color: Colors.black.withOpacity(0.8),
-                      child: Center(
-                        child: AnimatedScale(
-                          scale: _overlayScale,
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut,
-                          child: Hero(
-                            tag: imageUrl,
-                            child: CachedNetworkImage(
-                              imageUrl: imageUrl,
-                              fit: BoxFit.contain,
-                              progressIndicatorBuilder: (_, __, ___) =>
-                                  const CircularProgressIndicator(),
-                              errorWidget: (_, __, ___) => const Icon(
-                                Icons.broken_image,
-                                size: 50,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
+  void _showZoomOverlay(String imageUrl, Offset _) {
+    _zoomOverlay = OverlayEntry(
+      builder: (context) {
+        return GestureDetector(
+          onTap: _removeZoomOverlay,
+          onLongPressEnd: (_) => _removeZoomOverlay(),
+          child: AnimatedOpacity(
+            opacity: 1,
+            duration: const Duration(milliseconds: 100),
+            child: Container(
+              color: Colors.black.withOpacity(0.95),
+              child: Center(
+                child: AnimatedScale(
+                  scale: 1.5,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  child: Hero(
+                    tag: imageUrl,
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.contain,
+                      errorWidget: (_, __, ___) => const Icon(
+                        Icons.broken_image,
+                        size: 50,
+                        color: Colors.white,
                       ),
+                      progressIndicatorBuilder: (_, __, ___) =>
+                          const CircularProgressIndicator(color: Colors.white),
                     ),
                   ),
                 ),
               ),
-            ],
-          );
-        },
-      );
-    },
-  );
+            ),
+          ),
+        );
+      },
+    );
 
-  Overlay.of(context).insert(_zoomOverlay!);
-}
-
-void _removeZoomOverlay() {
-  if (_zoomOverlay != null) {
-    _overlayScale = 0.8;
-    _zoomOverlay!.markNeedsBuild();
-    Future.delayed(const Duration(milliseconds: 150), () {
-      _zoomOverlay?.remove();
-      _zoomOverlay = null;
-    });
+    Overlay.of(context).insert(_zoomOverlay!);
   }
-}
 
+  void _removeZoomOverlay() {
+    _zoomOverlay?.remove();
+    _zoomOverlay = null;
+  }
 
   Widget _buildLikeAnimation() {
     return FadeTransition(
