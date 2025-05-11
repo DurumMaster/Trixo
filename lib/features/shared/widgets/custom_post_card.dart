@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -179,6 +180,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
           ),
           _buildLikeAnimation(),
           _buildLikesBadge(),
+          _buildPostOptions(),
         ],
       ),
     );
@@ -351,6 +353,146 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPostOptions() {
+    return Positioned(
+      top: 8,
+      right: 8,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white, size: 24),
+            splashRadius: 18,
+            padding: EdgeInsets.zero,
+            onSelected: (String value) {
+              if (value == 'report') {
+                _showReportDialog();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.flag, color: AppColors.error, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'Reportar',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReportDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      backgroundColor: Theme.of(context).cardColor,
+      builder: (BuildContext context) {
+        final isLight = Theme.of(context).brightness == Brightness.light;
+        final textColor =
+            isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark;
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '¿Por qué quieres reportar esta publicación?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.flag, color: AppColors.error),
+                title: const Text(
+                  'Contenido inapropiado',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                tileColor: AppColors.error.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reporte enviado')),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.airline_stops_rounded,
+                    color: AppColors.error),
+                title: const Text(
+                  'Robo de diseño o plagio',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                tileColor: AppColors.error.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reporte enviado')),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.bug_report, color: AppColors.error),
+                title: const Text(
+                  'Problema técnico',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                tileColor: AppColors.error.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reporte enviado')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
