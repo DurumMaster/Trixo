@@ -11,11 +11,13 @@ import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 class PostCard extends StatefulWidget {
   final Post post;
   final VoidCallback onLike;
+  final VoidCallback onShare;
 
   const PostCard({
     super.key,
     required this.post,
     required this.onLike,
+    required this.onShare,
   });
 
   @override
@@ -633,7 +635,9 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       children: [
         _buildIconButton(
           icon: 'assets/icons/send.svg',
-          onPressed: () {},
+          onPressed: () {
+            widget.onShare();
+          },
         ),
         const SizedBox(width: 5),
         _buildAnimatedLikeButton(),

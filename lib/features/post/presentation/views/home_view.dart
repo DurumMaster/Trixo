@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
@@ -235,6 +240,7 @@ class _PostsSectionState extends ConsumerState<_PostsSection>
               post: posts[i],
               onLike: () =>
                   ref.read(postProvider.notifier).toggleLike(posts[i].id),
+              onShare: () => sharePost(posts[i].images),
             );
           },
         ),
@@ -247,6 +253,33 @@ class _PostsSectionState extends ConsumerState<_PostsSection>
         //   ),
       ],
     );
+  }
+
+  Future<void> sharePost(List<String> imageUrls) async {
+    try {
+      // Crear una lista para guardar las imágenes descargadas
+      List<XFile> files = [];
+
+      // Obtener directorio temporal
+      final tempDir = await getTemporaryDirectory();
+
+      for (int i = 0; i < imageUrls.length; i++) {
+        final response = await http.get(Uri.parse(imageUrls[i]));
+        final filePath = '${tempDir.path}/post_image_$i.jpg';
+
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        files.add(XFile(file.path));
+      }
+
+      // Compartir con descripción
+      await Share.shareXFiles(
+        files,
+        text: '¡Mira este diseño de Trixo!',
+      );
+    } catch (e) {
+      print('❌ Error al compartir: $e');
+    }
   }
 
   Widget _buildLoadingIndicator() {
