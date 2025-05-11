@@ -403,6 +403,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
   void _showReportDialog() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -440,10 +441,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reporte enviado')),
-                  );
+                  _showReportMessageDialog(context, 'Contenido inapropiado');
                 },
               ),
               const SizedBox(height: 8),
@@ -462,10 +460,7 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reporte enviado')),
-                  );
+                  _showReportMessageDialog(context, 'Contenido inapropiado');
                 },
               ),
               const SizedBox(height: 8),
@@ -483,14 +478,124 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reporte enviado')),
-                  );
+                  _showReportMessageDialog(context, 'Contenido inapropiado');
                 },
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showReportMessageDialog(BuildContext context, String reason) {
+    final TextEditingController controller = TextEditingController();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return AlertDialog(
+              insetPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              backgroundColor:
+                  isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+              title: Text(
+                'Reportar: $reason',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '¿Quieres añadir un mensaje explicando el motivo del reporte?',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: controller,
+                      maxLines: 4,
+                      minLines: 3,
+                      style: theme.textTheme.bodyLarge,
+                      decoration: InputDecoration(
+                        hintText: 'Escribe tu comentario (opcional)',
+                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? AppColors.surfaceDark
+                            : AppColors.surfaceLight,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.borderDark
+                                : AppColors.borderLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              actions: [
+                TextButton(
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Enviar',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () {
+                    //TODO: Logica reporte backend para gestor
+
+                    Navigator.of(context).pop();
+                    Navigator.of(context).maybePop();
+
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Reporte enviado: $reason',
+                        ),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
