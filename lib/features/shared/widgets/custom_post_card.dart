@@ -1,12 +1,13 @@
 import 'dart:math';
-import 'dart:ui';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
+import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -712,7 +713,19 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       child: Visibility(
         visible: widget.post.commentsCount > 0,
         child: GestureDetector(
-          onTap: () {},
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              builder: (_) => CommentBottomSheet(
+                postId: widget.post.id,
+                userId: FirebaseAuth.instance.currentUser?.uid ?? "",
+              ),
+            );
+          },
           child: Text(
             Intl.plural(
               widget.post.commentsCount,

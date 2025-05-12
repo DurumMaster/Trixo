@@ -8,4 +8,12 @@ class HumanFormats {
 
     return formattedNumber;
   }
+
+  static String timeAgo(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inMinutes < 1) return 'justo ahora';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    return '${diff.inDays}d';
+  }
 }

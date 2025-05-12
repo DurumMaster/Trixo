@@ -14,4 +14,14 @@ class PostRepositoryImpl extends PostRepository {
   Future<Post> toggleLike(String postId) async {
     return await datasource.toggleLike(postId);
   }
+
+  @override
+  Future<List<Comment>> getComments(String postId) {
+    return datasource.getComments(postId);
+  }
+
+  @override
+  Future<void> sendComment(Comment comment) {
+    return datasource.sendComment(comment);
+  }
 }

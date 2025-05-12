@@ -10,7 +10,8 @@ plugins {
 
 android {
     namespace = "com.example.trixo_frontend"
-    compileSdk = flutter.compileSdkVersion
+    //* Se ha cambiado por la librería de cloud_firestore
+    compileSdk = 35
     //* Se ha cambiado por la librería de Rive
     ndkVersion = "25.1.8937393"
 

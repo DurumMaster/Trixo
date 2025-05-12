@@ -44,4 +44,16 @@ class PostDatasourceImpl extends PostDatasource {
       throw Exception('Error al actualizar el like: ${e.message}');
     }
   }
+  
+  @override
+  Future<List<Comment>> getComments(String postId) {
+    // TODO: implement getComments
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> sendComment(Comment comment) {
+    // TODO: implement sendComment
+    throw UnimplementedError();
+  }
 }
