@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:trixo_frontend/config/theme/app_colors.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
@@ -15,6 +16,7 @@ class OnboardingPreferencesView extends ConsumerWidget {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final textColor =
         isLight ? AppColors.textPrimaryLight : AppColors.textPrimaryDark;
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       body: SafeArea(
@@ -70,7 +72,8 @@ class OnboardingPreferencesView extends ConsumerWidget {
                     ? () async {
                         final repo = ref.read(preferencesRepositoryProvider);
                         await repo.saveUserPreferences(
-                            preferences: provider.selectedPreferences.toList());
+                            preferences: provider.selectedPreferences.toList(),
+                            userId: user!.uid);
                         if (context.mounted) {
                           context.go('/home');
                         }

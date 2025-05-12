@@ -7,6 +7,7 @@ class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final AuthState _authState = const AuthState();
+
   Future<bool> signUp({
     //Registro
     required String email,

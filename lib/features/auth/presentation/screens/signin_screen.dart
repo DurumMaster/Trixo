@@ -33,7 +33,7 @@ class SignInScreen extends ConsumerWidget {
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (_) => const _EmailVerificationDialog(),
+          builder: (_) => _EmailVerificationDialog(ref: ref),
         );
       }
     }
@@ -107,7 +107,9 @@ class SignInScreen extends ConsumerWidget {
 }
 
 class _EmailVerificationDialog extends StatefulWidget {
-  const _EmailVerificationDialog();
+  final WidgetRef ref;
+
+  const _EmailVerificationDialog({required this.ref});
 
   @override
   State<_EmailVerificationDialog> createState() =>
@@ -132,10 +134,15 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
 
     if (verified) {
       _timer?.cancel();
+      final hasPreferences =
+          await widget.ref.read(hasPreferencesProvider.future);
       if (mounted) {
-        
-        Navigator.of(context).pop(); // Cierra el diálogo
-        context.go('/home');
+        if (hasPreferences) {
+          context.go('/home'); // Si tiene preferencias, ir al home
+        } else {
+          context
+              .go('/onboarding'); // Si no tiene preferencias, ir al onboarding
+        }
       }
     }
   }

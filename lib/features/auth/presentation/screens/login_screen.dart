@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_provider.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/onboarding_provider.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/preferences_repository_provider.dart';
 import 'package:trixo_frontend/features/shared/widgets/auth_animation_widget.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 
@@ -51,15 +53,25 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loginStatus = ref.watch(isLoggedInProvider);
+    final loginStatus = ref.watch(authProvider);
 
     return loginStatus.when(
       data: (isLoggedIn) {
         if (isLoggedIn) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.go('/home');
-          });
-          return const SizedBox.shrink();
+          final hasPreferences = ref.watch(hasPreferencesProvider);
+
+          return hasPreferences.when(
+            data: (hasPrefs) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.go(hasPrefs ? '/home' : '/onboarding');
+              });
+              return const SizedBox.shrink();
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(
+              child: Text('Error al comprobar preferencias: $error'),
+            ),
+          );
         }
 
         return GestureDetector(
@@ -175,41 +187,54 @@ class LoginScreen extends ConsumerWidget {
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
     final verified = await ref.read(loginFormProvider.notifier).onFormSubmit();
 
-    if (!verified && context.mounted) {
-      switchAnimations(false, "fail");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Credenciales inválidas o correo no verificado. Revisa tu email.',
+    if (!verified) {
+      if (context.mounted) {
+        switchAnimations(false, "fail");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Credenciales inválidas o correo no verificado. Revisa tu email.',
+            ),
           ),
-        ),
-      );
+        );
+      }
       return;
     }
 
+    final hasPreferences = await ref.read(hasPreferencesProvider.future);
     if (context.mounted) {
-      context.go('/home');
+      if (hasPreferences) {
+        context.go('/home');
+      } else {
+        context.go('/onboarding');
+      }
     }
   }
 
   Future<void> _googleSignIn(BuildContext context, WidgetRef ref) async {
     final verified =
         await ref.read(loginFormProvider.notifier).signInWithGoogle();
-
-    if (!verified && context.mounted) {
-      switchAnimations(false, "fail");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Error con Google o correo no verificado. Revisa tu email.',
+    if (!verified) {
+      if (context.mounted) {
+        switchAnimations(false, "fail");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Error con Google o correo no verificado. Revisa tu email.',
+            ),
           ),
-        ),
-      );
+        );
+      }
       return;
     }
 
+    final hasPreferences = await ref.read(hasPreferencesProvider.future);
     if (context.mounted) {
-      context.go('/home');
+      if (hasPreferences) {
+        context.go('/home');
+      } else {
+        context.go('/onboarding');
+      }
     }
   }
 }

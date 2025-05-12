@@ -7,5 +7,8 @@ abstract class AuthDataSource {
 
   Future<void> saveUserPreferences({
     required List<String> preferences,
+    required String userId,
   });
+
+  Future<bool> hasPreferences({required String userId});
 }

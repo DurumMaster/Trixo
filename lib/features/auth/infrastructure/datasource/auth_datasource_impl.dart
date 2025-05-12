@@ -47,9 +47,51 @@ class AuthDatasourceImpl extends AuthDataSource {
   }
 
   @override
-  Future<void> saveUserPreferences({required List<String> preferences}) {
-    //Realizar llamada a la API para guardar preferencias del usuario
-    //final response = await dio.post('/users/register');
-    throw UnimplementedError();
+  Future<void> saveUserPreferences({
+    required List<String> preferences,
+    required String userId,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/users/registerPreferences',
+        data: {
+          'userID': userId,
+          'preferences': preferences,
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to update user preferences');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        throw Exception('Invalid input: ${e.response?.data}');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Server error: ${e.response?.data}');
+      }
+      throw Exception('Error during updating user preferences: ${e.message}');
+    }
+  }
+
+  @override
+  Future<bool> hasPreferences({required String userId}) async {
+    try {
+      final response = await dio.get('/users/getPreferences', queryParameters: {
+        'userID': userId,
+      });
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception('Failed to get user preferences');
+      }
+
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        throw Exception('Invalid input: ${e.response?.data}');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Server error: ${e.response?.data}');
+      }
+      throw Exception('Error during getting user preferences: ${e.message}');
+    }
   }
 }
