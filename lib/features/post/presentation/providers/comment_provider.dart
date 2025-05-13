@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
@@ -53,3 +55,22 @@ class CommentNotifier extends StateNotifier<CommentState> {
     }
   }
 }
+
+
+// final getUserByIdProvider = FutureProvider.family<User, String>((ref, userId) async {
+//   final userRepository = ref.read(authRepositoryProvider);
+//   final user = await userRepository.getUserById(userId: userId);
+//   return user;
+// });
+
+final _userCacheProvider = Provider<Map<String, User>>((ref) => {});
+
+final cachedUserProvider = FutureProvider.family<User, String>((ref, userId) async {
+  final cache = ref.read(_userCacheProvider);
+  if (cache.containsKey(userId)) return cache[userId]!;
+  
+  final user = await ref.read(authRepositoryProvider).getUserById(userId: userId);
+  cache[userId] = user;
+  return user;
+});
+

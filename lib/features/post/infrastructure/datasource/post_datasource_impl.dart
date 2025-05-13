@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/infrastructure/post_infrastructure.dart';
+import 'package:trixo_frontend/features/post/infrastructure/mapper/comment_mapper.dart';
 import 'package:trixo_frontend/config/config.dart';
 
 class PostDatasourceImpl extends PostDatasource {
@@ -44,16 +45,42 @@ class PostDatasourceImpl extends PostDatasource {
       throw Exception('Error al actualizar el like: ${e.message}');
     }
   }
-  
+
   @override
-  Future<List<Comment>> getComments(String postId) {
-    // TODO: implement getComments
-    throw UnimplementedError();
+  Future<List<Comment>> getComments(String postId) async {
+    try {
+      final response =
+          await dio.get('/comments/getCommentsByID', queryParameters: {
+        'postID': postId,
+      });
+
+      final List<dynamic> data = response.data;
+
+      return data.map<Comment>((item) {
+        final map = item as Map<String, dynamic>;
+        final id = map['comment_id'] as String;
+        return CommentMapper.fromMap(id, map);
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al obtener comentarios: $e');
+    }
   }
-  
+
   @override
-  Future<void> sendComment(Comment comment) {
-    // TODO: implement sendComment
-    throw UnimplementedError();
+  Future<void> sendComment(Comment comment) async {
+    try {
+      final map = CommentMapper.toMap(comment);
+      await dio.post('/comments/insert', data: map);
+    } catch (e) {
+      throw Exception('Error al insertar comentario: $e');
+    }
   }
+
+  // Future<void> deleteComment(String commentId) async {
+  //   try {
+  //     await dio.post('/delete', data: commentId);
+  //   } catch (e) {
+  //     throw Exception('Error al eliminar comentario: $e');
+  //   }
+  // }
 }

@@ -6,17 +6,17 @@ class CommentMapper {
     return Comment(
       id: id,
       postId: data['post_id'] as String,
-      userId: data['userId'] as String,
+      userId: data['user_id'] as String,
       text: data['text'] as String,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: DateTime.parse(data['created_at']),
     );
   }
 
   static Map<String, dynamic> toMap(Comment comment) {
     return {
-      'userId': comment.userId,
+      'user_id': comment.userId,
       'text': comment.text,
-      'createdAt': comment.createdAt,
+      'created_at': comment.createdAt.toUtc().toIso8601String(),
       'targetType': 'post',
       'post_id': comment.postId,
     };

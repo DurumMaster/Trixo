@@ -1,3 +1,5 @@
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
+
 abstract class AuthDataSource {
   Future<void> registerUser({
     required String email,
@@ -11,4 +13,6 @@ abstract class AuthDataSource {
   });
 
   Future<bool> hasPreferences({required String userId});
+
+  Future<User> getUserById({required String userId});
 }

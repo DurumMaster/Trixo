@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/auth/domain/datasource/auth_datasource.dart';
+import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
+import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
 
 class AuthDatasourceImpl extends AuthDataSource {
   late final Dio dio;
@@ -93,5 +95,14 @@ class AuthDatasourceImpl extends AuthDataSource {
       }
       throw Exception('Error during getting user preferences: ${e.message}');
     }
+  }
+
+  @override
+  Future<User> getUserById({required String userId}) async {
+    final response = await dio.get('/users/getUser', queryParameters: {
+      'userID': userId,
+    });
+
+    return UserMapper.userJsonToEntity(response.data);
   }
 }

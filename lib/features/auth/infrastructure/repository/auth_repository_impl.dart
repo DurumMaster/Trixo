@@ -1,4 +1,5 @@
 import 'package:trixo_frontend/features/auth/domain/datasource/auth_datasource.dart';
+import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
 import 'package:trixo_frontend/features/auth/domain/repository/auth_repository.dart';
 
 class AuthRepositoryImpl extends AuthRepository {
@@ -29,5 +30,10 @@ class AuthRepositoryImpl extends AuthRepository {
   @override
   Future<bool> hasPreferences({required String userId}) {
     return datasource.hasPreferences(userId: userId);
+  }
+
+  @override
+  Future<User> getUserById({required String userId}) {
+    return datasource.getUserById(userId: userId);
   }
 }

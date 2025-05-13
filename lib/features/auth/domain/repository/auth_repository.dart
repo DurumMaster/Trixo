@@ -1,3 +1,5 @@
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
+
 abstract class AuthRepository {
   /// Registers a new user with email, username, and password.
   Future<void> registerUser({
@@ -12,4 +14,6 @@ abstract class AuthRepository {
   });
 
   Future<bool> hasPreferences({required String userId});
+
+  Future<User> getUserById({required String userId});
 }

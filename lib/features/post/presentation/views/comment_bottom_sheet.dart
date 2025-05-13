@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/config/config.dart';
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
@@ -25,7 +26,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(commentProvider(widget.postId).notifier).loadComments();
     });
   }
@@ -88,56 +89,20 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: state.comments.length,
                           separatorBuilder: (_, __) =>
-                              const Divider(height: 16),
+                              const SizedBox(height: 16),
                           itemBuilder: (_, i) {
                             final comment = state.comments[i];
-                            return Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundColor:
-                                      isDark ? Colors.black : Colors.white,
-                                  child: Text(
-                                    comment.userId[0].toUpperCase(),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            comment.userId,
-                                            style: theme.textTheme.bodyMedium
-                                                ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            HumanFormats.timeAgo(
-                                                comment.createdAt),
-                                            style: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                              color: theme.hintColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(comment.text),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                            final userAsync =
+                                ref.watch(cachedUserProvider(comment.userId));
+
+                            return userAsync.when(
+                              data: (user) =>
+                                  _CommentItem(comment: comment, user: user),
+                              loading: () => _LoadingCommentItem(),
+                              error: (error, stack) =>
+                                  _ErrorCommentItem(error: error),
                             );
-                          },
-                        ),
+                          }),
             ),
             const Divider(height: 1),
             Container(
@@ -191,6 +156,89 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CommentItem extends StatelessWidget {
+  final Comment comment;
+  final User user;
+
+  const _CommentItem({required this.comment, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundImage: NetworkImage(user.avatarImg),
+          backgroundColor: isDark ? Colors.black : Colors.white,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    user.username,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    HumanFormats.timeAgo(comment.createdAt),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                comment.text,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LoadingCommentItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
+  }
+}
+
+class _ErrorCommentItem extends StatelessWidget {
+  final dynamic error;
+
+  const _ErrorCommentItem({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        'Error: ${error.toString()}',
+        style: TextStyle(color: Colors.red),
       ),
     );
   }
