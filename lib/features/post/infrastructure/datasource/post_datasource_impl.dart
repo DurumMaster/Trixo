@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
+import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
 
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/infrastructure/post_infrastructure.dart';
@@ -73,6 +75,51 @@ class PostDatasourceImpl extends PostDatasource {
       await dio.post('/comments/insert', data: map);
     } catch (e) {
       throw Exception('Error al insertar comentario: $e');
+    }
+  }
+
+  @override
+  Future<List<Post>> getLikedPosts(String userId, int limit) async {
+    try {
+      final response = await dio.get('/posts/likedPosts',
+          queryParameters: {'userID': userId, 'limit': limit});
+      final List<Post> posts = [];
+
+      for (final post in response.data ?? []) {
+        posts.add(PostMapper.postJsonToEntity(post));
+      }
+
+      return posts;
+    } on DioException catch (e) {
+      throw Exception('Error al obtener likes: ${e.message}');
+    }
+  }
+
+  @override
+  Future<User> getUser(String userId) async {
+    try {
+      final response =
+          await dio.get('/users/getUser', queryParameters: {'userID': userId});
+      return UserMapper.userJsonToEntity(response.data);
+    } on DioException catch (e) {
+      throw Exception('Error al obtener usuario: ${e.message}');
+    }
+  }
+
+  @override
+  Future<List<Post>> getUserPosts(String userId, int limit) async {
+    try {
+      final response = await dio.get('/posts/postsByUserID',
+          queryParameters: {'userID': userId, 'limit': limit});
+      final List<Post> posts = [];
+
+      for (final post in response.data ?? []) {
+        posts.add(PostMapper.postJsonToEntity(post));
+      }
+
+      return posts;
+    } on DioException catch (e) {
+      throw Exception('Error al obtener posts: ${e.message}');
     }
   }
 

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/config/theme/app_colors.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 
-class CustomBottomNavigation extends StatefulWidget {
+class CustomBottomNavigation extends ConsumerStatefulWidget {
   const CustomBottomNavigation({super.key});
 
   @override
-  State<CustomBottomNavigation> createState() => _CustomBottomNavigationState();
+  ConsumerState<CustomBottomNavigation> createState() =>
+      _CustomBottomNavigationState();
 }
 
-class _CustomBottomNavigationState extends State<CustomBottomNavigation>
+class _CustomBottomNavigationState extends ConsumerState<CustomBottomNavigation>
     with SingleTickerProviderStateMixin {
   int selectedIndex = 0;
 
@@ -30,7 +33,10 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
         context.go('/home');
         break;
       case 4:
-        context.go('/profile');
+        final userId = ref.read(firebaseAuthProvider).currentUser?.uid;
+        if (userId != null) {
+          context.go('/profile/$userId');
+        }
         break;
     }
   }

@@ -52,12 +52,34 @@ final goRouterProvider = Provider((ref) {
               ),
               //* Profile View
               GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfileView(),
+                path: '/profile/:userId',
+                builder: (context, state) {
+                  return Consumer(
+                    builder: (context, ref, child) {
+                      final userId = state.pathParameters['userId']!;
+
+                      return ProfileView(
+                        userId: userId,
+                      );
+                    },
+                  );
+                },
               ),
               //TODO: Poner resto views del navbar
             ])
-          ])
+          ]),
+      //* External profile
+      GoRoute(
+        path: '/user/:userId',
+        builder: (context, state) {
+          return Consumer(
+            builder: (context, ref, child) {
+              final userId = state.pathParameters['userId']!;
+              return ProfileView(userId: userId);
+            },
+          );
+        },
+      )
     ],
     //* Bloquear si no se está autenticado de alguna manera
     // redirect: (context, state) {

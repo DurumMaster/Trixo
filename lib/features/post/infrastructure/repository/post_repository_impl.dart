@@ -1,3 +1,4 @@
+import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 
 class PostRepositoryImpl extends PostRepository {
@@ -23,5 +24,20 @@ class PostRepositoryImpl extends PostRepository {
   @override
   Future<void> sendComment(Comment comment) {
     return datasource.sendComment(comment);
+  }
+
+  @override
+  Future<List<Post>> getLikedPosts(String userId, int limit) {
+    return datasource.getLikedPosts(userId, limit);
+  }
+
+  @override
+  Future<User> getUser(String userId) {
+    return datasource.getUser(userId);
+  }
+
+  @override
+  Future<List<Post>> getUserPosts(String userId, int limit) {
+    return datasource.getUserPosts(userId, limit);
   }
 }

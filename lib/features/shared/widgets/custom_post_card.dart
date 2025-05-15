@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/config/config.dart';
+import 'package:trixo_frontend/config/router/app_router.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
 
@@ -609,19 +611,26 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
       padding: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
       child: Row(
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage:
-                    NetworkImage(widget.post.user?.avatarImg ?? ""),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                widget.post.user?.username ?? "Anónimo",
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
+          GestureDetector(
+            onTap: () {
+              if (widget.post.user?.id != null) {
+                context.go('/user/${widget.post.user!.id}');
+              }
+            },
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage:
+                      NetworkImage(widget.post.user?.avatarImg ?? ""),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  widget.post.user?.username ?? "Anónimo",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
           ),
           const Expanded(child: SizedBox()),
           _buildActionButtons(),
