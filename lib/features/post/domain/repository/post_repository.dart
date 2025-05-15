@@ -9,4 +9,5 @@ abstract class PostRepository {
   Future<User> getUser(String userId);
   Future<List<Post>> getUserPosts(String userId, int limit);
   Future<List<Post>> getLikedPosts(String userId, int limit);
+  Future<List<String>> pickImages();
 }

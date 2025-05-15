@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
+
 import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
 import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
-
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/infrastructure/post_infrastructure.dart';
 import 'package:trixo_frontend/features/post/infrastructure/mapper/comment_mapper.dart';
@@ -120,6 +121,21 @@ class PostDatasourceImpl extends PostDatasource {
       return posts;
     } on DioException catch (e) {
       throw Exception('Error al obtener posts: ${e.message}');
+    }
+  }
+
+  @override
+  Future<List<XFile>> pickImages() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final images = await picker.pickMultiImage(
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 80,
+      );
+      return images;
+    } catch (e) {
+      throw Exception('Error al seleccionar imágenes: $e');
     }
   }
 

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/features/auth/presentation/screens/onboarding_screen.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/screens/screens.dart';
-import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/config/router/app_router_notifier.dart';
 import 'package:trixo_frontend/features/shared/screens/screens.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
@@ -64,6 +63,11 @@ final goRouterProvider = Provider((ref) {
                     },
                   );
                 },
+              ),
+              //* Create post section
+              GoRoute(
+                path: '/image-picker',
+                builder: (context, state) => const ImagePickerView(),
               ),
               //TODO: Poner resto views del navbar
             ])

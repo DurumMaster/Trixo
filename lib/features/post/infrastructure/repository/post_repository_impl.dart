@@ -40,4 +40,10 @@ class PostRepositoryImpl extends PostRepository {
   Future<List<Post>> getUserPosts(String userId, int limit) {
     return datasource.getUserPosts(userId, limit);
   }
+
+  @override
+  Future<List<String>> pickImages() async {
+    final xFiles = await datasource.pickImages();
+    return xFiles.map((xFile) => xFile.path).toList();
+  }
 }
