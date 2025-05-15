@@ -40,4 +40,19 @@ class PostRepositoryImpl extends PostRepository {
   Future<List<Post>> getUserPosts(String userId, int limit) {
     return datasource.getUserPosts(userId, limit);
   }
+
+  @override
+  Future<List<Post>> getForYouPosts(String userId, int limit, int offset) {
+    return datasource.getForYouPosts(userId, limit, offset);
+  }
+
+  @override
+  Future<void> sendReport(String postId, String reason) {
+    return datasource.sendReport(postId, reason);
+  }
+
+  @override
+  Future<List<Post>> getRecentPosts(int limit, int offset) {
+    return datasource.getRecentPosts(limit, offset);
+  }
 }

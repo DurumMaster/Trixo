@@ -128,8 +128,13 @@ class AuthService {
     log("Usuario desconectado", name: "AuthService");
   }
 
-  User? get currentUser {
-    return _firebaseAuth.currentUser;
+  Future<String?> getCurrentUser() async {
+    final user = _firebaseAuth.currentUser;
+    if (user != null) {
+      return user.uid;
+    } else {
+      return null;
+    }
   }
 
   Future<bool> isLoggedIn() async {
