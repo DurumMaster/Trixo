@@ -64,14 +64,21 @@ final goRouterProvider = Provider((ref) {
                   );
                 },
               ),
-              //* Create post section
-              GoRoute(
-                path: '/image-picker',
-                builder: (context, state) => const ImagePickerView(),
-              ),
               //TODO: Poner resto views del navbar
             ])
           ]),
+      //* Create post section
+      GoRoute(
+        path: '/image-picker',
+        builder: (context, state) => const ImagePickerView(),
+      ),
+      GoRoute(
+        path: '/create-post',
+        builder: (context, state) {
+          final images = state.extra as List<String>;
+          return CreatePostView(images: images);
+        },
+      ),
       //* External profile
       GoRoute(
         path: '/user/:userId',
