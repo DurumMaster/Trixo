@@ -8,6 +8,9 @@ import 'package:trixo_frontend/features/post/presentation/providers/post_provide
 final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   final repository = ref.watch(postRepositoryProvider);
   final authState = ref.watch(currentUserID);
+  if (authState.value == null) {
+    throw Exception("User is not authenticated. Please try again.");
+  }
   return PostNotifier(repository: repository, userId: authState.value!);
 });
 
@@ -124,14 +127,14 @@ class PostNotifier extends StateNotifier<PostState> {
       List<Post> posts;
       switch (currentSection) {
         case HomeSection.top:
-          log("Offset actual: $sectionState.offset",name: "PostNotifier");
+          log("Offset actual: $sectionState.offset", name: "PostNotifier");
           posts = await repository.getPostsByPageRanking(
             limit: state.limit,
             offset: sectionState.offset,
           );
           break;
         case HomeSection.forYou:
-          log("Offset actual: $sectionState.offset",name: "PostNotifier");
+          log("Offset actual: $sectionState.offset", name: "PostNotifier");
           posts = await repository.getForYouPosts(
             userId,
             state.limit,
@@ -139,7 +142,7 @@ class PostNotifier extends StateNotifier<PostState> {
           );
           break;
         case HomeSection.recents:
-          log("Offset actual: $sectionState.offset",name: "PostNotifier");
+          log("Offset actual: $sectionState.offset", name: "PostNotifier");
           posts = await repository.getRecentPosts(
             state.limit,
             sectionState.offset,
