@@ -21,17 +21,22 @@ class AuthDatasourceImpl extends AuthDataSource {
 
   @override
   Future<void> registerUser({
-    required String email,
+    required String id,
     required String username,
-    required String password,
+    required String email,
+    required String avatar_img,
+    required DateTime registration_date,
+    
   }) async {
     try {
       final response = await dio.post(
         '/users/register',
         data: {
-          'email': email,
+          'id': id,
           'username': username,
-          'password': password,
+          'email': email,
+          'avatar_img': avatar_img,
+          'registration_date': registration_date.toIso8601String(),
         },
       );
 

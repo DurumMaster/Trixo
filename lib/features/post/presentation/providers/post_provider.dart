@@ -1,10 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
 final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   final repository = ref.watch(postRepositoryProvider);
-  return PostNotifier(repository: repository);
+  final authState = ref.watch(currentUserID);
+  return PostNotifier(repository: repository, userId: authState.value!);
 });
 
 enum HomeSection { forYou, top, recents }
@@ -73,8 +77,9 @@ class PostInteraction {
 
 class PostNotifier extends StateNotifier<PostState> {
   final PostRepository repository;
+  final String userId;
 
-  PostNotifier({required this.repository})
+  PostNotifier({required this.repository, required this.userId})
       : super(const PostState(
           sections: {
             HomeSection.forYou: SectionState(),
@@ -119,23 +124,25 @@ class PostNotifier extends StateNotifier<PostState> {
       List<Post> posts;
       switch (currentSection) {
         case HomeSection.top:
+          log("Offset actual: $sectionState.offset",name: "PostNotifier");
           posts = await repository.getPostsByPageRanking(
             limit: state.limit,
             offset: sectionState.offset,
           );
           break;
         case HomeSection.forYou:
-          // TODO: CAMBIAR CON EL METODO PARA FORYOU
-          posts = await repository.getPostsByPageRanking(
-            limit: state.limit,
-            offset: sectionState.offset,
+          log("Offset actual: $sectionState.offset",name: "PostNotifier");
+          posts = await repository.getForYouPosts(
+            userId,
+            state.limit,
+            sectionState.offset,
           );
           break;
         case HomeSection.recents:
-          // TODO: CAMBIAR CON EL METODO PARA FOLLOWING
-          posts = await repository.getPostsByPageRanking(
-            limit: state.limit,
-            offset: sectionState.offset,
+          log("Offset actual: $sectionState.offset",name: "PostNotifier");
+          posts = await repository.getRecentPosts(
+            state.limit,
+            sectionState.offset,
           );
           break;
       }
@@ -209,5 +216,13 @@ class PostNotifier extends StateNotifier<PostState> {
     }
 
     return state.copyWith(sections: newSections);
+  }
+
+  Future<void> sendReport(String postId, String reason) async {
+    try {
+      await repository.sendReport(postId, reason);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

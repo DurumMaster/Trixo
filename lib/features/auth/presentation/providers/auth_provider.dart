@@ -5,3 +5,9 @@ final authProvider = FutureProvider<bool>((ref) async {
   final authService = AuthService(); // Replace with your actual AuthService
   return await authService.isLoggedIn();
 });
+
+final currentUserID = FutureProvider<String?> ((ref) async {
+  final authService = AuthService(); // Replace with your actual AuthService
+  final String? user = await authService.getCurrentUser();
+  return user;
+});

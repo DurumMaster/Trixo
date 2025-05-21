@@ -1,9 +1,11 @@
 import "dart:developer";
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sign_button/sign_button.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_provider.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/onboarding_provider.dart';
@@ -213,6 +215,20 @@ class LoginScreen extends ConsumerWidget {
   Future<void> _googleSignIn(BuildContext context, WidgetRef ref) async {
     final verified =
         await ref.read(loginFormProvider.notifier).signInWithGoogle();
+
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    final user = firebaseAuth.currentUser;
+
+    if(user != null){
+      await ref.watch(authRepositoryProvider).registerUser(
+        id: user.uid, 
+        username: user.displayName ?? '', 
+        email: user.email!, 
+        avatar_img: user.photoURL ?? '', 
+        registration_date: DateTime.now(),
+      );
+    }
+
     if (!verified) {
       if (context.mounted) {
         switchAnimations(false, "fail");

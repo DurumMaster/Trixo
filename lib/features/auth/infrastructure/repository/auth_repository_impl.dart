@@ -9,14 +9,18 @@ class AuthRepositoryImpl extends AuthRepository {
 
   @override
   Future<void> registerUser({
-    required String email,
+    required String id,
     required String username,
-    required String password,
+    required String email,
+    required String avatar_img,
+    required DateTime registration_date,
   }) {
     return datasource.registerUser(
-      email: email,
+      id: id,
       username: username,
-      password: password,
+      email: email,
+      avatar_img: avatar_img,
+      registration_date: registration_date,
     );
   }
 

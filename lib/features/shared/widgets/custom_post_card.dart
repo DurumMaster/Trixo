@@ -7,9 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
+import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
 
-class PostCard extends StatefulWidget {
+class PostCard extends ConsumerStatefulWidget {
   final Post post;
   final VoidCallback onLike;
   final VoidCallback onShare;
@@ -22,10 +23,10 @@ class PostCard extends StatefulWidget {
   });
 
   @override
-  State<PostCard> createState() => _PostCardState();
+  ConsumerState<PostCard> createState() => _PostCardState();
 }
 
-class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
+class _PostCardState extends ConsumerState<PostCard> with TickerProviderStateMixin {
   late final PageController _pageController;
   late final AnimationController _animationController;
   late final Animation<double> _scaleAnimation;
@@ -580,7 +581,13 @@ class _PostCardState extends State<PostCard> with TickerProviderStateMixin {
                     ),
                   ),
                   onPressed: () {
-                    //TODO: Logica reporte backend para gestor
+                    if(controller.text.isNotEmpty){
+                      final message = reason + controller.text;
+                      ref.watch(postProvider.notifier).sendReport(
+                        widget.post.id,
+                        message,
+                      );
+                    }
 
                     Navigator.of(context).pop();
                     Navigator.of(context).maybePop();

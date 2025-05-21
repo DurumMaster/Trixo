@@ -12,6 +12,7 @@ class CustomTextFormField extends StatefulWidget {
   final Function(String)? onFieldSubmitted;
   final String? Function(String?)? validator;
   final VoidCallback? onTap;
+  final TextEditingController? controller;
 
   const CustomTextFormField({
     super.key,
@@ -24,7 +25,8 @@ class CustomTextFormField extends StatefulWidget {
     this.onChanged,
     this.onFieldSubmitted,
     this.validator,
-    this.onTap
+    this.onTap,
+    this.controller,
   });
 
   @override
@@ -67,6 +69,7 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
       onFieldSubmitted: widget.onFieldSubmitted,
       obscureText: _obscureText,
       keyboardType: widget.keyboardType,
+      controller: widget.controller,
       validator: widget.validator,
       cursorColor: inputTextColor,
       style: TextStyle(

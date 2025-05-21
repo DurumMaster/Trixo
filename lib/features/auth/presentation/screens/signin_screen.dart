@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
@@ -15,7 +17,8 @@ class SignInScreen extends ConsumerWidget {
     final signUpForm = ref.watch(signUpFormProvider);
     final notifier = ref.read(signUpFormProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
-
+    final usernameController = TextEditingController();
+    
     Future<void> submit() async {
       final created = await notifier.onFormSubmit();
       if (!created && context.mounted) {
@@ -26,6 +29,20 @@ class SignInScreen extends ConsumerWidget {
             ),
           ),
         );
+
+        FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+        final user = firebaseAuth.currentUser;
+        
+        if(user != null){
+          await ref.watch(authRepositoryProvider).registerUser(
+            id: user.uid, 
+            username: usernameController.text, 
+            email: user.email!, 
+            avatar_img: user.photoURL ?? '', 
+            registration_date: DateTime.now(),
+          );
+        }
+
         return;
       }
       // Se envió el email de verificación: abrimos el diálogo
@@ -67,6 +84,7 @@ class SignInScreen extends ConsumerWidget {
                 CustomTextFormField(
                   label: 'Nombre de usuario',
                   onChanged: notifier.onUsernameChanged,
+                  controller: usernameController,
                   errorMessage: signUpForm.isFormPosted
                       ? signUpForm.username.errorMessage
                       : null,
@@ -108,7 +126,7 @@ class SignInScreen extends ConsumerWidget {
 
 class _EmailVerificationDialog extends StatefulWidget {
   final WidgetRef ref;
-
+  
   const _EmailVerificationDialog({required this.ref});
 
   @override
@@ -138,6 +156,7 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
           await widget.ref.read(hasPreferencesProvider.future);
       if (mounted) {
         if (hasPreferences) {
+          
           context.go('/home'); // Si tiene preferencias, ir al home
         } else {
           context

@@ -142,6 +142,50 @@ class PostDatasourceImpl extends PostDatasource {
     }
   }
 
+  @override
+  Future<void> sendReport(String postId, String reason) async {
+    try {
+      await dio.post("/$postId/report/$reason");
+    } catch (e) {
+      throw Exception('Error al enviar reporte: $e');
+    }
+  }
+  
+  @override
+  Future<List<Post>> getForYouPosts(String userID, int limit, int offset) async {
+    final response = await dio.get("posts/forYou/$userID", 
+        queryParameters: {
+          'limit': limit,
+          'offset': offset,
+        });
+
+
+    final List<Post> posts = [];
+    for (final post in response.data ?? []) {
+      posts.add(PostMapper.postJsonToEntity(post));
+    }
+
+    return posts;
+  }
+
+  @override
+  Future<List<Post>> getRecentPosts(int limit, int offset) async {
+    final response = await dio.get("posts/recent",
+        queryParameters: {
+          'limit': limit,
+          'offset': offset,
+        });
+
+    final List<Post> posts = [];
+    for (final post in response.data ?? []) {
+      posts.add(PostMapper.postJsonToEntity(post));
+    }
+
+    return posts;
+  }
+
+}
+
   // Future<void> deleteComment(String commentId) async {
   //   try {
   //     await dio.post('/delete', data: commentId);
@@ -149,4 +193,3 @@ class PostDatasourceImpl extends PostDatasource {
   //     throw Exception('Error al eliminar comentario: $e');
   //   }
   // }
-}

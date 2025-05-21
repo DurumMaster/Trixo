@@ -10,4 +10,7 @@ abstract class PostRepository {
   Future<List<Post>> getUserPosts(String userId, int limit, int offset);
   Future<List<Post>> getLikedPosts(String userId, int limit, int offset);
   Future<List<String>> pickImages();
+  Future<List<Post>> getForYouPosts(String userId, int limit, int offset);
+  Future<List<Post>> getRecentPosts(int limit, int offset);
+  Future<void> sendReport(String postId, String reason);
 }
