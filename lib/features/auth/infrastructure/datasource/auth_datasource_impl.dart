@@ -78,31 +78,28 @@ class AuthDatasourceImpl extends AuthDataSource {
   @override
   Future<bool> hasPreferences({required String userId}) async {
     try {
-      final response = await dio.get('/users/getPreferences', queryParameters: {
-        'userID': userId,
-      });
+      final response = await dio.get('/users/$userId/preferences');
 
-      if (response.statusCode != 201 && response.statusCode != 200) {
+      if (response.statusCode != 200) {
         throw Exception('Failed to get user preferences');
       }
 
-      return response.data;
+      return response.data == true;
     } on DioException catch (e) {
-      if (e.response?.statusCode == 400) {
-        throw Exception('Invalid input: ${e.response?.data}');
-      } else if (e.response?.statusCode == 500) {
-        throw Exception('Server error: ${e.response?.data}');
-      }
-      throw Exception('Error during getting user preferences: ${e.message}');
+      throw Exception('Error getting preferences: ${e.response?.data ?? e.message}');
     }
   }
 
+
   @override
   Future<User> getUserById({required String userId}) async {
-    final response = await dio.get('/users/getUser', queryParameters: {
-      'userID': userId,
-    });
+    final response = await dio.get('/users/$userId');
+
+    if (response.statusCode != 200) {
+      throw Exception('User not found');
+    }
 
     return UserMapper.userJsonToEntity(response.data);
   }
+
 }

@@ -27,8 +27,8 @@ class PostRepositoryImpl extends PostRepository {
   }
 
   @override
-  Future<List<Post>> getLikedPosts(String userId, int limit) {
-    return datasource.getLikedPosts(userId, limit);
+  Future<List<Post>> getLikedPosts(String userId, int limit, int offset) {
+    return datasource.getLikedPosts(userId, limit, offset);
   }
 
   @override
@@ -37,8 +37,8 @@ class PostRepositoryImpl extends PostRepository {
   }
 
   @override
-  Future<List<Post>> getUserPosts(String userId, int limit) {
-    return datasource.getUserPosts(userId, limit);
+  Future<List<Post>> getUserPosts(String userId, int limit, int offset) {
+    return datasource.getUserPosts(userId, limit, offset);
   }
 
   @override

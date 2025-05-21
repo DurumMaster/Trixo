@@ -23,6 +23,9 @@ final profileProvider =
 class ProfileNotifier extends StateNotifier<ProfileState> {
   final PostRepository repository;
   final String userId;
+  static const int pageSize = 10;
+  bool _isLoadingMorePosts = false;
+  bool _isLoadingMoreLikedPosts = false;
 
   ProfileNotifier(this.repository, this.userId) : super(ProfileState()) {
     loadProfileData();
@@ -32,16 +35,66 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     try {
       state = state.copyWith(isLoading: true);
       final user = await repository.getUser(userId);
-      final posts = await repository.getUserPosts(userId, 10);
-      final likedPosts = await repository.getLikedPosts(userId, 10);
+      final posts = await repository.getUserPosts(userId, pageSize, 0);
+      final likedPosts = await repository.getLikedPosts(userId, pageSize, 0);
       state = state.copyWith(
         user: user,
         posts: posts,
         likedPosts: likedPosts,
+        postsOffset: posts.length,
+        likedPostsOffset: likedPosts.length,
         isLoading: false,
       );
     } catch (e) {
       state = state.copyWith(error: e, isLoading: false);
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    if (_isLoadingMorePosts) return;
+    _isLoadingMorePosts = true;
+
+    try {
+      final newPosts = await repository.getUserPosts(
+        userId,
+        pageSize,
+        state.postsOffset,
+      );
+
+      if (newPosts.isNotEmpty) {
+        state = state.copyWith(
+          posts: [...state.posts, ...newPosts],
+          postsOffset: state.postsOffset + newPosts.length,
+        );
+      }
+    } catch (e) {
+      // Opcional: manejar error al cargar más posts
+    } finally {
+      _isLoadingMorePosts = false;
+    }
+  }
+
+  Future<void> loadMoreLikedPosts() async {
+    if (_isLoadingMoreLikedPosts) return;
+    _isLoadingMoreLikedPosts = true;
+
+    try {
+      final newLikedPosts = await repository.getLikedPosts(
+        userId,
+        pageSize,
+        state.likedPostsOffset,
+      );
+
+      if (newLikedPosts.isNotEmpty) {
+        state = state.copyWith(
+          likedPosts: [...state.likedPosts, ...newLikedPosts],
+          likedPostsOffset: state.likedPostsOffset + newLikedPosts.length,
+        );
+      }
+    } catch (e) {
+      // Opcional: manejar error al cargar más liked posts
+    } finally {
+      _isLoadingMoreLikedPosts = false;
     }
   }
 
@@ -54,6 +107,8 @@ class ProfileState {
   final User? user;
   final List<Post> posts;
   final List<Post> likedPosts;
+  final int postsOffset;
+  final int likedPostsOffset;
   final int currentTab;
   final bool isLoading;
   final Object? error;
@@ -66,6 +121,8 @@ class ProfileState {
     this.user,
     this.posts = const [],
     this.likedPosts = const [],
+    this.postsOffset = 0,
+    this.likedPostsOffset = 0,
     this.currentTab = 0,
     this.isLoading = false,
     this.error,
@@ -75,6 +132,8 @@ class ProfileState {
     User? user,
     List<Post>? posts,
     List<Post>? likedPosts,
+    int? postsOffset,
+    int? likedPostsOffset,
     int? currentTab,
     bool? isLoading,
     Object? error,
@@ -84,6 +143,8 @@ class ProfileState {
       posts: posts ?? this.posts,
       likedPosts: likedPosts ?? this.likedPosts,
       currentTab: currentTab ?? this.currentTab,
+      postsOffset: postsOffset ?? this.postsOffset,
+      likedPostsOffset: likedPostsOffset ?? this.likedPostsOffset,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
     );

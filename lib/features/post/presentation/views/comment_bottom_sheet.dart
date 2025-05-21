@@ -238,7 +238,7 @@ class _ErrorCommentItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         'Error: ${error.toString()}',
-        style: TextStyle(color: Colors.red),
+        style: const TextStyle(color: Colors.red),
       ),
     );
   }

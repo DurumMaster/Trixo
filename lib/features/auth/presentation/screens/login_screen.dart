@@ -7,7 +7,6 @@ import 'package:trixo_frontend/features/auth/presentation/providers/auth_provide
 
 import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/onboarding_provider.dart';
-import 'package:trixo_frontend/features/auth/presentation/providers/preferences_repository_provider.dart';
 import 'package:trixo_frontend/features/shared/widgets/auth_animation_widget.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 

@@ -5,7 +5,6 @@ import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
 import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/infrastructure/post_infrastructure.dart';
-import 'package:trixo_frontend/features/post/infrastructure/mapper/comment_mapper.dart';
 import 'package:trixo_frontend/config/config.dart';
 
 class PostDatasourceImpl extends PostDatasource {
@@ -26,7 +25,10 @@ class PostDatasourceImpl extends PostDatasource {
   @override
   Future<List<Post>> getPostsByPageRanking(
       {int limit = 10, int offset = 0}) async {
-    final response = await dio.get('/posts/top?limit=$limit');
+    final response = await dio.get('/posts/top', queryParameters: {
+      'limit': limit,
+      'offset': offset,
+    });
     final List<Post> posts = [];
 
     for (final post in response.data ?? []) {
@@ -39,7 +41,7 @@ class PostDatasourceImpl extends PostDatasource {
   @override
   Future<Post> toggleLike(String postId) async {
     try {
-      final response = await dio.post('/posts/$postId/like');
+      final response = await dio.put('/posts/$postId/like');
       return PostMapper.postJsonToEntity(response.data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
@@ -52,10 +54,7 @@ class PostDatasourceImpl extends PostDatasource {
   @override
   Future<List<Comment>> getComments(String postId) async {
     try {
-      final response =
-          await dio.get('/comments/getCommentsByID', queryParameters: {
-        'postID': postId,
-      });
+      final response = await dio.get('/api/comments/$postId');
 
       final List<dynamic> data = response.data;
 
@@ -73,17 +72,20 @@ class PostDatasourceImpl extends PostDatasource {
   Future<void> sendComment(Comment comment) async {
     try {
       final map = CommentMapper.toMap(comment);
-      await dio.post('/comments/insert', data: map);
+      await dio.post('/comments', data: map);
     } catch (e) {
       throw Exception('Error al insertar comentario: $e');
     }
   }
 
   @override
-  Future<List<Post>> getLikedPosts(String userId, int limit) async {
+  Future<List<Post>> getLikedPosts(String userId, int limit, int offset) async {
     try {
-      final response = await dio.get('/posts/likedPosts',
-          queryParameters: {'userID': userId, 'limit': limit});
+      final response =
+          await dio.get('/posts/$userId/likedPosts', queryParameters: {
+        'limit': limit,
+        'offset': offset,
+      });
       final List<Post> posts = [];
 
       for (final post in response.data ?? []) {
@@ -99,8 +101,7 @@ class PostDatasourceImpl extends PostDatasource {
   @override
   Future<User> getUser(String userId) async {
     try {
-      final response =
-          await dio.get('/users/getUser', queryParameters: {'userID': userId});
+      final response = await dio.get('/users/$userId');
       return UserMapper.userJsonToEntity(response.data);
     } on DioException catch (e) {
       throw Exception('Error al obtener usuario: ${e.message}');
@@ -108,10 +109,12 @@ class PostDatasourceImpl extends PostDatasource {
   }
 
   @override
-  Future<List<Post>> getUserPosts(String userId, int limit) async {
+  Future<List<Post>> getUserPosts(String userId, int limit, int offset) async {
     try {
-      final response = await dio.get('/posts/postsByUserID',
-          queryParameters: {'userID': userId, 'limit': limit});
+      final response = await dio.get('/posts/$userId/posts', queryParameters: {
+        'limit': limit,
+        'offset': offset,
+      });
       final List<Post> posts = [];
 
       for (final post in response.data ?? []) {

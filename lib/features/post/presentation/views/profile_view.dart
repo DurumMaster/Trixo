@@ -1,26 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 import 'package:trixo_frontend/config/config.dart';
 
-class ProfileView extends ConsumerWidget {
+class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key, required this.userId});
   final String userId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(profileProvider(userId));
+  ConsumerState<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends ConsumerState<ProfileView> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+
+    _scrollController.addListener(() {
+      final state = ref.read(profileProvider(widget.userId));
+
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        final notifier = ref.read(profileProvider(widget.userId).notifier);
+        if (state.currentTab == 0) {
+          notifier.loadMorePosts();
+        } else {
+          notifier.loadMoreLikedPosts();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(profileProvider(widget.userId));
     final isLight = Theme.of(context).brightness == Brightness.light;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(profileProvider(userId));
-          await ref.read(profileProvider(userId).notifier).loadProfileData();
+          ref.invalidate(profileProvider(widget.userId));
+          await ref
+              .read(profileProvider(widget.userId).notifier)
+              .loadProfileData();
         },
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: Stack(
@@ -117,11 +152,11 @@ class ProfileView extends ConsumerWidget {
                       Text(state.user?.username ?? '',
                           style: textTheme.titleLarge),
                       const SizedBox(height: 8),
-                      //TODO: Text(
-                      //   state.user?.bio ?? '',
-                      //   textAlign: TextAlign.center,
-                      //   style: textTheme.bodyMedium,
-                      // ),
+                      Text(
+                        state.user?.bio ?? '',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyMedium,
+                      ),
                     ],
                   ],
                 ),
@@ -135,7 +170,7 @@ class ProfileView extends ConsumerWidget {
                 child: _ProfileTabs(
                   current: state.currentTab,
                   onChanged: (index) => ref
-                      .read(profileProvider(userId).notifier)
+                      .read(profileProvider(widget.userId).notifier)
                       .switchTab(index),
                 ),
               ),
