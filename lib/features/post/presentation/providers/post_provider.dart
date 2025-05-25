@@ -183,7 +183,7 @@ class PostNotifier extends StateNotifier<PostState> {
     if (!ctrl.hasClients) return false;
     final pos = ctrl.position.pixels;
     final max = ctrl.position.maxScrollExtent;
-    if (max - pos > 300) return false; // a más de 300px no cargamos
+    if (max - pos > 300) return false;
 
     final st = state.sections[section]!;
     switch (section) {

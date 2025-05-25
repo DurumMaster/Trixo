@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/config/theme/app_colors.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
+import 'package:trixo_frontend/features/post/presentation/providers/post_provider.dart';
 
 class CustomBottomNavigation extends ConsumerStatefulWidget {
   const CustomBottomNavigation({super.key});
@@ -17,6 +18,14 @@ class _CustomBottomNavigationState extends ConsumerState<CustomBottomNavigation>
   int selectedIndex = 0;
 
   void onItemTapped(int index) {
+    final isTappedHome = index == 0;
+    final isAlreadyHome = selectedIndex == 0;
+
+    if (isTappedHome && isAlreadyHome) {
+      final currentSection = ref.read(postProvider).currentSection;
+      ref.read(postProvider.notifier).refreshSection(currentSection);
+    }
+
     setState(() => selectedIndex = index);
 
     switch (index) {
