@@ -59,11 +59,27 @@ final goRouterProvider = Provider((ref) {
 
                       return ProfileView(
                         userId: userId,
+                        actualUser: true,
                       );
                     },
                   );
                 },
               ),
+              //* External profile
+              GoRoute(
+                path: '/user/:userId',
+                builder: (context, state) {
+                  return Consumer(
+                    builder: (context, ref, child) {
+                      final userId = state.pathParameters['userId']!;
+                      return ProfileView(
+                        userId: userId,
+                        actualUser: false,
+                      );
+                    },
+                  );
+                },
+              )
               //TODO: Poner resto views del navbar
             ])
           ]),
@@ -79,18 +95,6 @@ final goRouterProvider = Provider((ref) {
           return CreatePostView(images: images);
         },
       ),
-      //* External profile
-      GoRoute(
-        path: '/user/:userId',
-        builder: (context, state) {
-          return Consumer(
-            builder: (context, ref, child) {
-              final userId = state.pathParameters['userId']!;
-              return ProfileView(userId: userId);
-            },
-          );
-        },
-      )
     ],
     //* Bloquear si no se está autenticado de alguna manera
     // redirect: (context, state) {

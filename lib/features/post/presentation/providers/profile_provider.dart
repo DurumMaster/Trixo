@@ -101,6 +101,52 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
   void switchTab(int index) {
     state = state.copyWith(currentTab: index);
   }
+
+  Future<void> toggleLikePost(String postId) async {
+    // Preparar nuevos lists
+    final updatedPosts = state.posts.map((p) {
+      if (p.id == postId) {
+        return p.copyWith(
+          isLiked: !p.isLiked,
+          likesCount: p.likesCount + (p.isLiked ? -1 : 1),
+        );
+      }
+      return p;
+    }).toList();
+
+    final updatedLiked = state.likedPosts
+        .map((p) {
+          if (p.id == postId) {
+            // En likedPosts, si pasas de liked→no liked, lo eliminas
+            return p.copyWith(
+              isLiked: !p.isLiked,
+              likesCount: p.likesCount + (p.isLiked ? -1 : 1),
+            );
+          }
+          return p;
+        })
+        // Si el post deja de estar liked, lo quitamos de la lista:
+        .where((p) => p.isLiked)
+        .toList();
+
+    // Emitir estado optimista
+    state = state.copyWith(
+      posts: updatedPosts,
+      likedPosts: updatedLiked,
+    );
+
+    try {
+      await repository.toggleLike(postId);
+      // Nada más: ya quedó actualizado
+    } catch (e) {
+      // Si falla, revertimos
+      state = state.copyWith(
+        posts: state.posts, // aquí podrías recargar desde backend
+        likedPosts: state.likedPosts,
+      );
+      rethrow;
+    }
+  }
 }
 
 class ProfileState {

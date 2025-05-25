@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
@@ -196,30 +193,9 @@ class HomeSectionPage extends ConsumerWidget {
         return PostCard(
           post: post,
           onLike: () => ref.read(postProvider.notifier).toggleLike(post.id),
-          onShare: () => _sharePost(post.images),
+          onShare: () => ref.read(postProvider.notifier).sharePost(post.images),
         );
       },
     );
-  }
-
-  Future<void> _sharePost(List<String> imageUrls) async {
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final files = <XFile>[];
-
-      for (var idx = 0; idx < imageUrls.length; idx++) {
-        final res = await http.get(Uri.parse(imageUrls[idx]));
-        final path = '${tempDir.path}/img_$idx.jpg';
-        final file = File(path)..writeAsBytesSync(res.bodyBytes);
-        files.add(XFile(file.path));
-      }
-
-      await Share.shareXFiles(
-        files,
-        text: '¡Mira este diseño de Trixo!',
-      );
-    } catch (e) {
-      debugPrint('Error al compartir: $e');
-    }
   }
 }

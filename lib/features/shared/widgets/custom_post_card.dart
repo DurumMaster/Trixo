@@ -584,11 +584,11 @@ class _PostCardState extends ConsumerState<PostCard>
                     ),
                   ),
                   onPressed: () {
-                      final message = reason + controller.text;
-                      ref.watch(postProvider.notifier).sendReport(
-                            widget.post.id,
-                            message,
-                          );
+                    final message = reason + controller.text;
+                    ref.watch(postProvider.notifier).sendReport(
+                          widget.post.id,
+                          message,
+                        );
 
                     Navigator.of(context).pop();
                     Navigator.of(context).maybePop();
@@ -620,7 +620,7 @@ class _PostCardState extends ConsumerState<PostCard>
           GestureDetector(
             onTap: () {
               if (widget.post.user?.id != null) {
-                context.go('/user/${widget.post.user!.id}');
+                context.push('/user/${widget.post.user!.id}');
               }
             },
             child: Row(

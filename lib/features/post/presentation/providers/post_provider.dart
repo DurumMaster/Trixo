@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
@@ -404,6 +408,27 @@ class PostNotifier extends StateNotifier<PostState> {
 
   Future<void> sendReport(String postId, String reason) async {
     await repository.sendReport(postId, reason);
+  }
+
+  Future<void> sharePost(List<String> imageUrls) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final files = <XFile>[];
+
+      for (var idx = 0; idx < imageUrls.length; idx++) {
+        final res = await http.get(Uri.parse(imageUrls[idx]));
+        final path = '${tempDir.path}/img_$idx.jpg';
+        final file = File(path)..writeAsBytesSync(res.bodyBytes);
+        files.add(XFile(file.path));
+      }
+
+      await Share.shareXFiles(
+        files,
+        text: '¡Mira este diseño de Trixo!',
+      );
+    } catch (e) {
+      debugPrint('Error al compartir: $e');
+    }
   }
 
   @override
