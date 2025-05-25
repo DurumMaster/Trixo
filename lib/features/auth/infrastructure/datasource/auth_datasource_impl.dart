@@ -98,13 +98,26 @@ class AuthDatasourceImpl extends AuthDataSource {
 
   @override
   Future<User> getUserById({required String userId}) async {
-    final response = await dio.get('/users/$userId');
+    try{
+      final response = await dio.get('/users/$userId');
 
-    if (response.statusCode != 200) {
-      throw Exception('User not found');
+      if (response.statusCode != 200) {
+        return UserMapper.userJsonToEntity(response.data);
+      }
+
+      return UserMapper.userJsonToEntity(response.data);
+
+    } catch (e) {
+      return UserMapper.userJsonToEntity({
+        'id': "",
+        'username': 'Unknown',
+        'email': 'Unknown',
+        'avatar_img': '',
+        'registration_date': "",
+      });
     }
 
-    return UserMapper.userJsonToEntity(response.data);
+
   }
 
 }

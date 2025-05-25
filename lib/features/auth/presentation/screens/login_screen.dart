@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sign_button/sign_button.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 
@@ -215,18 +216,21 @@ class LoginScreen extends ConsumerWidget {
   Future<void> _googleSignIn(BuildContext context, WidgetRef ref) async {
     final verified =
         await ref.read(loginFormProvider.notifier).signInWithGoogle();
-
+    AuthRepository authRepository = ref.watch(authRepositoryProvider);
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     final user = firebaseAuth.currentUser;
 
     if(user != null){
-      await ref.watch(authRepositoryProvider).registerUser(
-        id: user.uid, 
-        username: user.displayName ?? '', 
-        email: user.email!, 
-        avatar_img: user.photoURL ?? '', 
-        registration_date: DateTime.now(),
-      );
+      final userDB = await authRepository.getUserById(userId: user.uid);
+      if(userDB.id.isEmpty){
+        await ref.watch(authRepositoryProvider).registerUser(
+          id: user.uid, 
+          username: user.displayName ?? '', 
+          email: user.email!, 
+          avatar_img: user.photoURL ?? '', 
+          registration_date: DateTime.now(),
+        );
+      }
     }
 
     if (!verified) {
