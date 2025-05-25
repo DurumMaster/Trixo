@@ -7,8 +7,8 @@ class PostRepositoryImpl extends PostRepository {
   PostRepositoryImpl(this.datasource);
 
   @override
-  Future<List<Post>> getPostsByPageRanking({int limit = 10, int offset = 0}) {
-    return datasource.getPostsByPageRanking(limit: limit, offset: offset);
+  Future<List<Post>> getPostsByPageRanking(int limit, int offset) {
+    return datasource.getPostsByPageRanking(limit, offset);
   }
 
   @override
@@ -60,5 +60,10 @@ class PostRepositoryImpl extends PostRepository {
   @override
   Future<List<Post>> getRecentPosts(int limit, int offset) {
     return datasource.getRecentPosts(limit, offset);
+  }
+
+  @override
+  Future<List<Post>> getAllPosts(int limit, int offset) {
+    return datasource.getAllPosts(limit, offset);
   }
 }

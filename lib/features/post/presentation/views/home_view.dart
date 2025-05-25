@@ -1,11 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
@@ -18,79 +16,130 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  final PageController _pageController = PageController();
-  final Map<HomeSection, ScrollController> _scrollControllers = {
-    HomeSection.forYou: ScrollController(),
-    HomeSection.top: ScrollController(),
-    HomeSection.recents: ScrollController(),
-  };
-  int _selectedTab = 0;
-  final List<String> _tabs = ['Para tí', 'Top', 'Novedades'];
+  late final PageController _pageController;
+  final List<String> _tabs = ['Para ti', 'Top', 'Novedades'];
 
   @override
   void initState() {
     super.initState();
-    _setupScrollListeners();
-  }
-
-  void _setupScrollListeners() {
-    for (final controller in _scrollControllers.values) {
-      controller.addListener(() {
-        final currentState = ref.read(postProvider);
-        final currentSection = currentState.currentSection;
-
-        if (controller != _scrollControllers[currentSection]) return;
-
-        final sectionState = currentState.sections[currentSection]!;
-        final position = controller.position;
-
-        if (position.pixels >= position.maxScrollExtent - 300 &&
-            !sectionState.isLoading &&
-            !sectionState.isLastPage) {
-          ref.read(postProvider.notifier).loadNextPage();
-        }
-      });
-    }
+    final initialPage = ref.read(postProvider).currentSection.index;
+    _pageController = PageController(initialPage: initialPage);
   }
 
   @override
   void dispose() {
-    for (var c in _scrollControllers.values) {
-      c.dispose();
-    }
     _pageController.dispose();
     super.dispose();
-  }
-
-  Widget _buildSectionPage(HomeSection section) {
-    return _PostsSection(
-      section: section,
-      scrollController: _scrollControllers[section]!,
-    );
   }
 
   void _onTabSelected(int index) {
     final section = HomeSection.values[index];
     ref.read(postProvider.notifier).setCurrentSection(section);
-    setState(() {
-      _selectedTab = index;
-    });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final postState = ref.watch(postProvider);
-    final isLoading = postState.sections[postState.currentSection]!.isLoading;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Sincroniza PageController con cambios de sección
+    ref.listen<PostState>(postProvider, (previous, next) {
+      final idx = next.currentSection.index;
+      if (_pageController.hasClients && _pageController.page?.round() != idx) {
+        _pageController.animateToPage(
+          idx,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
 
     return Stack(
       children: [
-        _buildContent(postState),
-        if (isLoading)
+        SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () => ref
+                .read(postProvider.notifier)
+                .refreshSection(postState.currentSection),
+            color: isDark ? AppColors.white : AppColors.black,
+            child: Scaffold(
+              backgroundColor:
+                  isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+              appBar: AppBar(
+                backgroundColor: isDark
+                    ? AppColors.backgroundDark
+                    : AppColors.backgroundLight,
+                elevation: 0,
+                titleSpacing: 0,
+                title: Center(
+                  child: IntrinsicWidth(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(_tabs.length, (index) {
+                        final selected =
+                            postState.currentSection.index == index;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          child: GestureDetector(
+                            onTap: () => _onTabSelected(index),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _tabs[index],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: selected
+                                        ? (isDark
+                                            ? AppColors.white
+                                            : AppColors.black)
+                                        : (isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textSecondaryLight),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  height: 2,
+                                  width: selected ? 24 : 0,
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.white
+                                        : AppColors.black,
+                                    borderRadius: BorderRadius.circular(1),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+              body: PageView.builder(
+                physics: const ClampingScrollPhysics(),
+                controller: _pageController,
+                onPageChanged: (i) {
+                  final section = HomeSection.values[i];
+                  if (postState.currentSection != section) {
+                    ref.read(postProvider.notifier).setCurrentSection(section);
+                  }
+                },
+                itemCount: HomeSection.values.length,
+                itemBuilder: (context, index) {
+                  final section = HomeSection.values[index];
+                  return HomeSectionPage(section: section);
+                },
+              ),
+            ),
+          ),
+        ),
+        // Overlay de carga global
+        if (_isAnySectionLoading(postState))
           Positioned.fill(
             child: Container(
               color: Colors.black.withOpacity(0.3),
@@ -105,189 +154,72 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
   }
 
-  Widget _buildContent(PostState state) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  bool _isAnySectionLoading(PostState state) {
+    final sec = state.sections[state.currentSection]!;
+    return switch (state.currentSection) {
+      HomeSection.forYou => sec.isLoadingForYou || sec.isLoadingRest,
+      HomeSection.top => sec.isLoadingTop,
+      HomeSection.recents => sec.isLoadingRecents,
+    };
+  }
+}
 
-    Future<void> refresh() async {
-      await ref.read(postProvider.notifier).refreshCurrentSection();
-    }
+/// Widget que representa cada sección y mantiene el estado (scroll) vivo
+class HomeSectionPage extends ConsumerWidget {
+  final HomeSection section;
+  const HomeSectionPage({required this.section, super.key});
 
-    return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: refresh,
-        color: isDark ? AppColors.white : AppColors.black,
-        child: Scaffold(
-          backgroundColor:
-              isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-          appBar: AppBar(
-            backgroundColor:
-                isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-            elevation: 0,
-            titleSpacing: 0,
-            title: Container(
-              width: double.infinity,
-              alignment: Alignment.center,
-              child: IntrinsicWidth(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_tabs.length, (index) {
-                    final selected = _selectedTab == index;
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      child: GestureDetector(
-                        onTap: () => _onTabSelected(index),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _tabs[index],
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: selected
-                                    ? (isDark
-                                        ? AppColors.white
-                                        : AppColors.black)
-                                    : (isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondaryLight),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              height: 2,
-                              width: selected ? 24 : 0,
-                              decoration: BoxDecoration(
-                                color:
-                                    isDark ? AppColors.white : AppColors.black,
-                                borderRadius: BorderRadius.circular(1),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ),
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final postState = ref.watch(postProvider);
+    final secState = postState.sections[section]!;
+
+    return ListView.builder(
+      key: PageStorageKey(section),
+      controller: secState.scrollController, // <- usa este
+      itemCount: secState.posts.length + (secState.hasError ? 1 : 0),
+      itemBuilder: (context, i) {
+        if (secState.hasError && i == secState.posts.length) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: IconButton(
+                onPressed: () =>
+                    ref.read(postProvider.notifier).loadMore(section),
+                icon: const Icon(Icons.refresh),
+                color: Theme.of(context).iconTheme.color,
               ),
             ),
-            // actions: [
-            //   IconButton(
-            //     icon: Icon(Icons.search,
-            //         color: isDark ? AppColors.white : AppColors.black),
-            //     onPressed: () {},
-            //   ),
-            // ],
-          ),
-          body: PageView.builder(
-            physics: const ClampingScrollPhysics(),
-            itemCount: HomeSection.values.length,
-            controller: _pageController,
-            onPageChanged: (index) {
-              final section = HomeSection.values[index];
-              ref.read(postProvider.notifier).setCurrentSection(section);
-              setState(() {
-                _selectedTab = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              return _buildSectionPage(HomeSection.values[index]);
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PostsSection extends ConsumerStatefulWidget {
-  final HomeSection section;
-  final ScrollController scrollController;
-
-  const _PostsSection({
-    required this.section,
-    required this.scrollController,
-  });
-
-  @override
-  ConsumerState<_PostsSection> createState() => _PostsSectionState();
-}
-
-class _PostsSectionState extends ConsumerState<_PostsSection>
-    with AutomaticKeepAliveClientMixin {
-  final PageStorageKey _pageStorageKey = PageStorageKey(UniqueKey());
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    final state = ref.watch(postProvider);
-    final posts = state.sections[widget.section]!.posts;
-    //final isLoading = state.sections[widget.section]!.isLoading;
-
-    return Stack(
-      children: [
-        ListView.builder(
-          key: _pageStorageKey,
-          controller: widget.scrollController,
-          itemCount: posts.length,
-          itemBuilder: (context, i) {
-            return PostCard(
-              post: posts[i],
-              onLike: () =>
-                  ref.read(postProvider.notifier).toggleLike(posts[i].id),
-              onShare: () => sharePost(posts[i].images),
-            );
-          },
-        ),
-        // if (isLoading)
-        //   Positioned(
-        //     bottom: 20,
-        //     left: 0,
-        //     right: 0,
-        //     child: _buildLoadingIndicator(),
-        //   ),
-      ],
+          );
+        }
+        final post = secState.posts[i];
+        return PostCard(
+          post: post,
+          onLike: () => ref.read(postProvider.notifier).toggleLike(post.id),
+          onShare: () => _sharePost(post.images),
+        );
+      },
     );
   }
 
-  Future<void> sharePost(List<String> imageUrls) async {
+  Future<void> _sharePost(List<String> imageUrls) async {
     try {
-      // Crear una lista para guardar las imágenes descargadas
-      List<XFile> files = [];
-
-      // Obtener directorio temporal
       final tempDir = await getTemporaryDirectory();
+      final files = <XFile>[];
 
-      for (int i = 0; i < imageUrls.length; i++) {
-        final response = await http.get(Uri.parse(imageUrls[i]));
-        final filePath = '${tempDir.path}/post_image_$i.jpg';
-
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
+      for (var idx = 0; idx < imageUrls.length; idx++) {
+        final res = await http.get(Uri.parse(imageUrls[idx]));
+        final path = '${tempDir.path}/img_$idx.jpg';
+        final file = File(path)..writeAsBytesSync(res.bodyBytes);
         files.add(XFile(file.path));
       }
 
-      // Compartir con descripción
       await Share.shareXFiles(
         files,
         text: '¡Mira este diseño de Trixo!',
       );
     } catch (e) {
-      print('❌ Error al compartir: $e');
+      debugPrint('Error al compartir: $e');
     }
-  }
-
-  Widget _buildLoadingIndicator() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: CircularProgressIndicator(),
-      ),
-    );
   }
 }

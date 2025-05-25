@@ -23,8 +23,7 @@ class PostDatasourceImpl extends PostDatasource {
   }
 
   @override
-  Future<List<Post>> getPostsByPageRanking(
-      {int limit = 10, int offset = 0}) async {
+  Future<List<Post>> getPostsByPageRanking(int limit, int offset) async {
     final response = await dio.get('/posts/top', queryParameters: {
       'limit': limit,
       'offset': offset,
@@ -56,7 +55,22 @@ class PostDatasourceImpl extends PostDatasource {
 
   @override
   Future<List<Post>> getRecentPosts(int limit, int offset) async {
-    final response = await dio.get("posts/recent", queryParameters: {
+    final response = await dio.get("/posts/recent", queryParameters: {
+      'limit': limit,
+      'offset': offset,
+    });
+
+    final List<Post> posts = [];
+    for (final post in response.data ?? []) {
+      posts.add(PostMapper.postJsonToEntity(post));
+    }
+
+    return posts;
+  }
+
+  @override
+  Future<List<Post>> getAllPosts(int limit, int offset) async {
+    final response = await dio.get("/posts", queryParameters: {
       'limit': limit,
       'offset': offset,
     });

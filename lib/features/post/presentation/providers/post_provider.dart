@@ -1,231 +1,417 @@
-import 'dart:developer';
-
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
+// Proveedores Firebase + userId
+final firebaseUserProvider = StreamProvider<firebase_auth.User?>(
+  (ref) => firebase_auth.FirebaseAuth.instance.authStateChanges(),
+);
+final userIdProvider =
+    Provider<String?>((ref) => ref.watch(firebaseUserProvider).value?.uid);
+
+// PostProvider
 final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
-  final repository = ref.watch(postRepositoryProvider);
-  final authState = ref.watch(currentUserID);
-  if (authState.value == null) {
-    throw Exception("User is not authenticated. Please try again.");
-  }
-  return PostNotifier(repository: repository, userId: authState.value!);
+  return PostNotifier(
+    repository: ref.read(postRepositoryProvider),
+    userId: ref.watch(userIdProvider),
+  );
 });
 
+// Secciones
 enum HomeSection { forYou, top, recents }
 
+// Estado por sección
 class SectionState {
-  final bool isLastPage;
-  final int offset;
-  final bool isLoading;
   final List<Post> posts;
 
+  // For You
+  final int forYouOffset;
+  final bool isLoadingForYou;
+  final bool hasMoreForYou;
+
+  // Resto (fallback)
+  final int restOffset;
+  final bool isLoadingRest;
+  final bool hasMoreRest;
+
+  // Top
+  final int topOffset;
+  final bool isLoadingTop;
+  final bool hasMoreTop;
+
+  // Recents
+  final int recentsOffset;
+  final bool isLoadingRecents;
+  final bool hasMoreRecents;
+
+  // Error común
+  final bool hasError;
+
+  // Controller
+  final ScrollController scrollController;
+
   const SectionState({
-    this.isLastPage = false,
-    this.offset = 0,
-    this.isLoading = false,
     this.posts = const [],
+    // For You
+    this.forYouOffset = 0,
+    this.isLoadingForYou = false,
+    this.hasMoreForYou = true,
+    // Rest
+    this.restOffset = 0,
+    this.isLoadingRest = false,
+    this.hasMoreRest = true,
+    // Top
+    this.topOffset = 0,
+    this.isLoadingTop = false,
+    this.hasMoreTop = true,
+    // Recents
+    this.recentsOffset = 0,
+    this.isLoadingRecents = false,
+    this.hasMoreRecents = true,
+    this.hasError = false,
+    required this.scrollController,
   });
 
   SectionState copyWith({
-    bool? isLastPage,
-    int? offset,
-    bool? isLoading,
     List<Post>? posts,
+    int? forYouOffset,
+    bool? isLoadingForYou,
+    bool? hasMoreForYou,
+    int? restOffset,
+    bool? isLoadingRest,
+    bool? hasMoreRest,
+    int? topOffset,
+    bool? isLoadingTop,
+    bool? hasMoreTop,
+    int? recentsOffset,
+    bool? isLoadingRecents,
+    bool? hasMoreRecents,
+    bool? hasError,
   }) {
     return SectionState(
-      isLastPage: isLastPage ?? this.isLastPage,
-      offset: offset ?? this.offset,
-      isLoading: isLoading ?? this.isLoading,
       posts: posts ?? this.posts,
+      forYouOffset: forYouOffset ?? this.forYouOffset,
+      isLoadingForYou: isLoadingForYou ?? this.isLoadingForYou,
+      hasMoreForYou: hasMoreForYou ?? this.hasMoreForYou,
+      restOffset: restOffset ?? this.restOffset,
+      isLoadingRest: isLoadingRest ?? this.isLoadingRest,
+      hasMoreRest: hasMoreRest ?? this.hasMoreRest,
+      topOffset: topOffset ?? this.topOffset,
+      isLoadingTop: isLoadingTop ?? this.isLoadingTop,
+      hasMoreTop: hasMoreTop ?? this.hasMoreTop,
+      recentsOffset: recentsOffset ?? this.recentsOffset,
+      isLoadingRecents: isLoadingRecents ?? this.isLoadingRecents,
+      hasMoreRecents: hasMoreRecents ?? this.hasMoreRecents,
+      hasError: hasError ?? this.hasError,
+      scrollController: scrollController,
     );
   }
 }
 
+// Estado global
 class PostState {
   final Map<HomeSection, SectionState> sections;
-  final int limit;
   final HomeSection currentSection;
 
   const PostState({
     required this.sections,
-    this.limit = 10,
-    this.currentSection = HomeSection.forYou,
+    required this.currentSection,
   });
+
+  factory PostState.initial() {
+    final controllers = {
+      for (var s in HomeSection.values) s: ScrollController(),
+    };
+    return PostState(
+      currentSection: HomeSection.forYou,
+      sections: {
+        for (var s in HomeSection.values)
+          s: SectionState(scrollController: controllers[s]!),
+      },
+    );
+  }
 
   PostState copyWith({
     Map<HomeSection, SectionState>? sections,
-    int? limit,
     HomeSection? currentSection,
   }) {
     return PostState(
       sections: sections ?? this.sections,
-      limit: limit ?? this.limit,
       currentSection: currentSection ?? this.currentSection,
     );
   }
 }
 
-class PostInteraction {
-  final bool isLiked;
-  final int likesCount;
-
-  const PostInteraction({
-    required this.isLiked,
-    required this.likesCount,
-  });
-}
-
+// Notifier
 class PostNotifier extends StateNotifier<PostState> {
   final PostRepository repository;
-  final String userId;
+  final String? userId;
+  static const int pageSize = 5;
+  bool _isDisposed = false;
 
   PostNotifier({required this.repository, required this.userId})
-      : super(const PostState(
-          sections: {
-            HomeSection.forYou: SectionState(),
-            HomeSection.top: SectionState(),
-            HomeSection.recents: SectionState(),
-          },
-          limit: 10,
-          currentSection: HomeSection.forYou,
-        )) {
-    _loadInitialSection();
+      : super(PostState.initial()) {
+    _initControllers();
+    _initialLoad();
   }
 
-  Future<void> _loadInitialSection() async {
-    await loadNextPage();
-  }
-
-  void setCurrentSection(HomeSection section) {
-    if (state.currentSection == section) return;
-
-    state = state.copyWith(currentSection: section);
-
-    final sectionState = state.sections[section] ?? const SectionState();
-    if (sectionState.posts.isEmpty) {
-      loadNextPage();
+  void _initControllers() {
+    for (final section in state.sections.keys) {
+      state.sections[section]!.scrollController.addListener(() {
+        if (_shouldLoadMore(section)) {
+          loadMore(section);
+        }
+      });
     }
   }
 
-  Future<void> loadNextPage() async {
-    final currentSection = state.currentSection;
-    final sectionState = state.sections[currentSection]!;
+  Future<void> _initialLoad() async {
+    if (userId == null) return;
+    // Solo cargar la sección "forYou" al inicio
+    await _loadSection(HomeSection.forYou, initialLoad: true);
+  }
 
-    if (sectionState.isLoading || sectionState.isLastPage) return;
+  bool _shouldLoadMore(HomeSection section) {
+    final ctrl = state.sections[section]!.scrollController;
+    if (!ctrl.hasClients) return false;
+    final pos = ctrl.position.pixels;
+    final max = ctrl.position.maxScrollExtent;
+    if (max - pos > 300) return false; // a más de 300px no cargamos
 
-    state = state.copyWith(
-      sections: {
-        ...state.sections,
-        currentSection: sectionState.copyWith(isLoading: true),
-      },
-    );
-
-    try {
-      List<Post> posts;
-      switch (currentSection) {
-        case HomeSection.top:
-          log("Offset actual: $sectionState.offset", name: "PostNotifier");
-          posts = await repository.getPostsByPageRanking(
-            limit: state.limit,
-            offset: sectionState.offset,
-          );
-          break;
-        case HomeSection.forYou:
-          log("Offset actual: $sectionState.offset", name: "PostNotifier");
-          posts = await repository.getForYouPosts(
-            userId,
-            state.limit,
-            sectionState.offset,
-          );
-          break;
-        case HomeSection.recents:
-          log("Offset actual: $sectionState.offset", name: "PostNotifier");
-          posts = await repository.getRecentPosts(
-            state.limit,
-            sectionState.offset,
-          );
-          break;
-      }
-
-      final newSectionState = sectionState.copyWith(
-        isLoading: false,
-        isLastPage: posts.isEmpty,
-        offset: sectionState.offset + state.limit,
-        posts: [...sectionState.posts, ...posts],
-      );
-
-      state = state.copyWith(
-        sections: {
-          ...state.sections,
-          currentSection: newSectionState,
-        },
-      );
-    } catch (e) {
-      state = state.copyWith(
-        sections: {
-          ...state.sections,
-          currentSection: sectionState.copyWith(isLoading: false),
-        },
-      );
+    final st = state.sections[section]!;
+    switch (section) {
+      case HomeSection.forYou:
+        return (!st.isLoadingForYou && st.hasMoreForYou) ||
+            (!st.isLoadingRest && st.hasMoreRest);
+      case HomeSection.top:
+        return !st.isLoadingTop && st.hasMoreTop;
+      case HomeSection.recents:
+        return !st.isLoadingRecents && st.hasMoreRecents;
     }
   }
 
-  Future<void> refreshCurrentSection() async {
-    final currentSection = state.currentSection;
+  Future<void> loadMore(HomeSection section) async {
+    if (_isDisposed) return;
+    await _loadSection(section);
+  }
 
-    state = state.copyWith(
-      sections: {
-        ...state.sections,
-        currentSection: const SectionState(),
-      },
-    );
+  Future<void> _loadSection(HomeSection section,
+      {bool initialLoad = false}) async {
+    if (userId == null && section == HomeSection.forYou) return;
 
-    await loadNextPage();
+    final st = state.sections[section]!;
+
+    switch (section) {
+      case HomeSection.forYou:
+        // Primero recomendados
+        if (st.hasMoreForYou) {
+          // marcaremos isLoadingForYou
+          state = state.copyWith(sections: {
+            ...state.sections,
+            section: st.copyWith(
+              isLoadingForYou: true,
+              hasError: false,
+              posts: initialLoad ? [] : st.posts,
+            ),
+          });
+
+          try {
+            final page = await repository.getForYouPosts(
+                userId!, pageSize, st.forYouOffset);
+            final hasMore = page.isNotEmpty;
+            final merged = initialLoad ? page : [...st.posts, ...page];
+
+            state = state.copyWith(sections: {
+              ...state.sections,
+              section: st.copyWith(
+                posts: merged,
+                forYouOffset: st.forYouOffset + page.length,
+                hasMoreForYou: hasMore,
+                isLoadingForYou: false,
+              ),
+            });
+          } catch (e) {
+            state = state.copyWith(sections: {
+              ...state.sections,
+              section: st.copyWith(
+                isLoadingForYou: false,
+                hasError: true,
+              ),
+            });
+          }
+          return;
+        }
+        // Luego fallback "rest"
+        if (st.hasMoreRest) {
+          state = state.copyWith(sections: {
+            ...state.sections,
+            section: st.copyWith(
+              isLoadingRest: true,
+              hasError: false,
+            ),
+          });
+
+          try {
+            final page = await repository.getAllPosts(pageSize, st.restOffset);
+            final hasMore = page.isNotEmpty;
+            final merged = [...st.posts, ...page];
+
+            state = state.copyWith(sections: {
+              ...state.sections,
+              section: st.copyWith(
+                posts: merged,
+                restOffset: st.restOffset + page.length,
+                hasMoreRest: hasMore,
+                isLoadingRest: false,
+              ),
+            });
+          } catch (e) {
+            state = state.copyWith(sections: {
+              ...state.sections,
+              section: st.copyWith(
+                isLoadingRest: false,
+                hasError: true,
+              ),
+            });
+          }
+        }
+        break;
+
+      case HomeSection.top:
+        if (!st.hasMoreTop || st.isLoadingTop) return;
+        state = state.copyWith(sections: {
+          ...state.sections,
+          section: st.copyWith(isLoadingTop: true, hasError: false),
+        });
+        try {
+          final page =
+              await repository.getPostsByPageRanking(pageSize, st.topOffset);
+          final hasMore = page.isNotEmpty;
+          final merged = initialLoad ? page : [...st.posts, ...page];
+
+          state = state.copyWith(sections: {
+            ...state.sections,
+            section: st.copyWith(
+              posts: merged,
+              topOffset: st.topOffset + page.length,
+              hasMoreTop: hasMore,
+              isLoadingTop: false,
+            ),
+          });
+        } catch (e) {
+          state = state.copyWith(sections: {
+            ...state.sections,
+            section: st.copyWith(
+              isLoadingTop: false,
+              hasError: true,
+            ),
+          });
+        }
+        break;
+
+      case HomeSection.recents:
+        if (!st.hasMoreRecents || st.isLoadingRecents) return;
+        state = state.copyWith(sections: {
+          ...state.sections,
+          section: st.copyWith(isLoadingRecents: true, hasError: false),
+        });
+        try {
+          final page =
+              await repository.getRecentPosts(pageSize, st.recentsOffset);
+          final hasMore = page.isNotEmpty;
+          final merged = initialLoad ? page : [...st.posts, ...page];
+
+          state = state.copyWith(sections: {
+            ...state.sections,
+            section: st.copyWith(
+              posts: merged,
+              recentsOffset: st.recentsOffset + page.length,
+              hasMoreRecents: hasMore,
+              isLoadingRecents: false,
+            ),
+          });
+        } catch (e) {
+          state = state.copyWith(sections: {
+            ...state.sections,
+            section: st.copyWith(
+              isLoadingRecents: false,
+              hasError: true,
+            ),
+          });
+        }
+        break;
+    }
+  }
+
+  void setCurrentSection(HomeSection sec) {
+    state = state.copyWith(currentSection: sec);
+    // Cargar si no hay nada aún
+    if (state.sections[sec]!.posts.isEmpty) {
+      _loadSection(sec, initialLoad: true);
+    }
+  }
+
+  Future<void> refreshSection(HomeSection sec) async {
+    final st = state.sections[sec]!;
+    state = state.copyWith(sections: {
+      ...state.sections,
+      sec: SectionState(scrollController: st.scrollController),
+    });
+    await _loadSection(sec, initialLoad: true);
   }
 
   Future<void> toggleLike(String postId) async {
-    try {
-      // Actualización optimista
-      state = _updatePostInState(
-          postId,
-          (post) => post.copyWith(
-              isLiked: !post.isLiked,
-              likesCount: post.likesCount + (post.isLiked ? -1 : 1)));
+    final st = state.sections[state.currentSection]!;
+    // Actualización optimista solo en la sección actual
+    final updated = st.posts.map((p) {
+      if (p.id == postId) {
+        return p.copyWith(
+          isLiked: !p.isLiked,
+          likesCount: p.likesCount + (p.isLiked ? -1 : 1),
+        );
+      }
+      return p;
+    }).toList();
 
+    state = state.copyWith(sections: {
+      ...state.sections,
+      state.currentSection: st.copyWith(posts: updated),
+    });
+
+    try {
       await repository.toggleLike(postId);
-    } catch (e) {
-      // Rollback
-      state = _updatePostInState(
-          postId,
-          (post) => post.copyWith(
-              isLiked: !post.isLiked,
-              likesCount: post.likesCount - (post.isLiked ? -1 : 1)));
+    } catch (_) {
+      // revertir
+      final reverted = updated.map((p) {
+        if (p.id == postId) {
+          return p.copyWith(
+            isLiked: !p.isLiked,
+            likesCount: p.likesCount + (p.isLiked ? -1 : 1),
+          );
+        }
+        return p;
+      }).toList();
+      state = state.copyWith(sections: {
+        ...state.sections,
+        state.currentSection: st.copyWith(posts: reverted),
+      });
       rethrow;
     }
-  }
-
-  PostState _updatePostInState(String postId, Post Function(Post) updateFn) {
-    final newSections = Map<HomeSection, SectionState>.from(state.sections);
-
-    for (final section in newSections.keys) {
-      final posts = newSections[section]!.posts.map((post) {
-        return post.id == postId ? updateFn(post) : post;
-      }).toList();
-
-      newSections[section] = newSections[section]!.copyWith(posts: posts);
-    }
-
-    return state.copyWith(sections: newSections);
   }
 
   Future<void> sendReport(String postId, String reason) async {
-    try {
-      await repository.sendReport(postId, reason);
-    } catch (e) {
-      rethrow;
+    await repository.sendReport(postId, reason);
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    for (var st in state.sections.values) {
+      st.scrollController.dispose();
     }
+    super.dispose();
   }
 }
