@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import 'package:trixo_frontend/config/theme/app_colors.dart';
+import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 
@@ -52,7 +51,7 @@ class OnboardingPreferencesView extends ConsumerWidget {
                   spacing: 6,
                   runSpacing: 6,
                   alignment: WrapAlignment.center,
-                  children: provider.allPreferences.entries.map((entry) {
+                  children: AppConstants().allPreferences.entries.map((entry) {
                     return CustomTagButton(
                       text: entry.key,
                       color: entry.value,

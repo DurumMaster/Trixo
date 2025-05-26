@@ -20,7 +20,8 @@ class PostSubmitState {
     List<String>? tags,
     bool? isLoading,
     String? error,
-  }) => PostSubmitState(
+  }) =>
+      PostSubmitState(
         description: description ?? this.description,
         tags: tags ?? this.tags,
         isLoading: isLoading ?? this.isLoading,
@@ -32,8 +33,7 @@ class PostSubmitNotifier extends StateNotifier<PostSubmitState> {
   final PostRepository _repo;
   final List<String> images;
 
-  PostSubmitNotifier(this._repo, this.images)
-      : super(PostSubmitState());
+  PostSubmitNotifier(this._repo, this.images) : super(PostSubmitState());
 
   void setDescription(String text) {
     state = state.copyWith(description: text);
@@ -46,18 +46,20 @@ class PostSubmitNotifier extends StateNotifier<PostSubmitState> {
   Future<bool> submit() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final post = Post(
+      final cleanedTags = state.tags.map((tag) {
+        final runes = tag.runes.toList();
+        if (runes.length <= 1) return tag;
+        return String.fromCharCodes(runes.sublist(1)).trim();
+      }).toList();
+
+      final post = PostDto(
         id: '',
         caption: state.description,
         images: images,
-        createdAt: DateTime.now().toIso8601String(),
-        likesCount: 0,
-        commentsCount: 0,
-        tags: state.tags,
-        user: null,
-        isLiked: false,
+        tags: cleanedTags,
       );
-      //await _repo.submitPost(post);
+      await _repo.submitPost(post);
+
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
@@ -67,8 +69,8 @@ class PostSubmitNotifier extends StateNotifier<PostSubmitState> {
   }
 }
 
-final postSubmitProvider = StateNotifierProvider.family<
-    PostSubmitNotifier, PostSubmitState, List<String>>((ref, images) {
+final postSubmitProvider = StateNotifierProvider.family<PostSubmitNotifier,
+    PostSubmitState, List<String>>((ref, images) {
   final repo = ref.read(postRepositoryProvider);
   return PostSubmitNotifier(repo, images);
 });

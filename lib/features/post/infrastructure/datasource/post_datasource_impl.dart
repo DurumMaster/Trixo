@@ -195,6 +195,34 @@ class PostDatasourceImpl extends PostDatasource {
       throw Exception('Error al enviar reporte: $e');
     }
   }
+
+  @override
+  Future<List<String>> uploadImages(List<String> localPaths) async {
+    final formData = FormData();
+    for (var path in localPaths) {
+      formData.files.add(
+        MapEntry(
+          'file',
+          await MultipartFile.fromFile(path, filename: path.split('/').last),
+        ),
+      );
+    }
+    final resp = await dio.post<List>(
+      '/posts/upload',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    // devuelve lista de URLs
+    return resp.data!.map((e) => e as String).toList();
+  }
+
+  @override
+  Future<void> createPost(PostDto post) async {
+    await dio.post<String>(
+      '/posts/create',
+      data: post.toJson(),
+    );
+  }
 }
 
   // Future<void> deleteComment(String commentId) async {

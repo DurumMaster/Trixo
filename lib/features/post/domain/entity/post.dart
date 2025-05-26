@@ -1,4 +1,5 @@
 import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
+import 'package:uuid/uuid.dart';
 
 class Post {
   final String id;
@@ -45,4 +46,26 @@ class Post {
       isLiked: isLiked ?? this.isLiked,
     );
   }
+}
+
+class PostDto {
+  final String id;
+  final String caption;
+  final List<String> images;
+  final List<String> tags;
+
+
+  PostDto({
+    String? id,
+    required this.caption,
+    required this.images,
+    required this.tags,
+  }) : id = id ?? const Uuid().v4();
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'caption': caption,
+        'images': images,
+        'tags': tags,
+      };
 }

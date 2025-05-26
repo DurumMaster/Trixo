@@ -15,4 +15,6 @@ abstract class PostDatasource {
   Future<List<Post>> getLikedPosts(String userId, int limit, int offset);
   Future<List<XFile>> pickImages();
   Future<void> sendReport(String postId, String reason);
+  Future<List<String>> uploadImages(List<String> localPaths);
+  Future<void> createPost(PostDto post);
 }

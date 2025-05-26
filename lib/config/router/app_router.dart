@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/features/auth/presentation/screens/onboarding_screen.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/screens/screens.dart';
-import 'package:trixo_frontend/config/router/app_router_notifier.dart';
+import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/shared/screens/screens.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
 
@@ -93,6 +93,16 @@ final goRouterProvider = Provider((ref) {
         builder: (context, state) {
           final images = state.extra as List<String>;
           return CreatePostView(images: images);
+        },
+      ),
+      GoRoute(
+        path: '/select-tags',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return CreatePostSelectTagsView(
+            availableTags: AppConstants().allPreferences,
+            initialTags: extra['initialTags'] as List<String>,
+          );
         },
       ),
     ],
