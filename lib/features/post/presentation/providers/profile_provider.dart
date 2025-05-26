@@ -18,17 +18,22 @@ final profileRepositoryProvider = Provider<PostRepository>((ref) {
 final profileProvider =
     StateNotifierProvider.family<ProfileNotifier, ProfileState, String>(
   (ref, userId) =>
-      ProfileNotifier(ref.watch(profileRepositoryProvider), userId),
+      ProfileNotifier(ref: ref, repository: ref.watch(profileRepositoryProvider), userId: userId),
 );
 
 class ProfileNotifier extends StateNotifier<ProfileState> {
+  final Ref ref;
   final PostRepository repository;
   final String userId;
   static const int pageSize = 10;
   bool _isLoadingMorePosts = false;
   bool _isLoadingMoreLikedPosts = false;
 
-  ProfileNotifier(this.repository, this.userId) : super(ProfileState()) {
+  ProfileNotifier({
+    required this.ref,
+    required this.repository,
+    required this.userId,
+  }) : super(ProfileState()) {
     loadProfileData();
   }
 
@@ -38,6 +43,10 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final user = await repository.getUser(userId);
       final posts = await repository.getUserPosts(userId, pageSize, 0);
       final likedPosts = await repository.getLikedPosts(userId, pageSize, 0);
+
+      ref.read(postCacheProvider.notifier).upsertAll(posts);
+      ref.read(postCacheProvider.notifier).upsertAll(likedPosts);
+
       state = state.copyWith(
         user: user,
         posts: posts,
@@ -67,6 +76,8 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final existingIds = state.posts.map((e) => e.id).toSet();
       final filteredNewPosts =
           newPosts.where((p) => !existingIds.contains(p.id)).toList();
+
+      ref.read(postCacheProvider.notifier).upsertAll(filteredNewPosts);
 
       final updatedPosts = [...state.posts, ...filteredNewPosts];
 
@@ -105,6 +116,8 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final filteredNewLiked =
           newLikedPosts.where((p) => !existingIds.contains(p.id)).toList();
 
+      ref.read(postCacheProvider.notifier).upsertAll(filteredNewLiked);
+
       final updatedLikedPosts = [...state.likedPosts, ...filteredNewLiked];
 
       state = state.copyWith(
@@ -132,42 +145,49 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
   }
 
   Future<void> toggleLikePost(String postId) async {
-    final updatedPosts = state.posts.map((p) {
-      if (p.id == postId) {
-        return p.copyWith(
-          isLiked: !p.isLiked,
-          likesCount: p.likesCount + (p.isLiked ? -1 : 1),
-        );
-      }
-      return p;
-    }).toList();
+    final allPosts = [...state.posts, ...state.likedPosts];
+    final current = allPosts.firstWhere((p) => p.id == postId);
 
-    final updatedLiked = state.likedPosts
-        .map((p) {
-          if (p.id == postId) {
-            return p.copyWith(
-              isLiked: !p.isLiked,
-              likesCount: p.likesCount + (p.isLiked ? -1 : 1),
-            );
-          }
-          return p;
-        })
-        .where((p) => p.isLiked)
-        .toList();
-
-    state = state.copyWith(
-      posts: updatedPosts,
-      likedPosts: updatedLiked,
+    final optimistic = current.copyWith(
+      isLiked: !current.isLiked,
+      likesCount: current.likesCount + (current.isLiked ? -1 : 1),
     );
 
+    final updatedPosts = state.posts.map((p) => p.id == postId ? optimistic : p).toList();
+    List<Post> updatedLiked = optimistic.isLiked
+        ? [...state.likedPosts, optimistic]
+        : state.likedPosts.where((p) => p.id != postId).toList();
+
+    if (!optimistic.isLiked && state.likedPosts.any((p) => p.id == postId)) {
+      updatedLiked = state.likedPosts.where((p) => p.id != postId).toList();
+    }
+
+    state = state.copyWith(posts: updatedPosts, likedPosts: updatedLiked);
+    ref.read(postCacheProvider.notifier).replace(optimistic);
+
     try {
-      await repository.toggleLike(postId);
-    } catch (e) {
+      final updated = await repository.toggleLike(postId);
+
+      ref.read(postCacheProvider.notifier).replace(updated);
+
       state = state.copyWith(
-        posts: state.posts,
-        likedPosts: state.likedPosts,
+        posts: state.posts.map((p) => p.id == postId ? updated : p).toList(),
+        likedPosts: updated.isLiked
+            ? (state.likedPosts.any((p) => p.id == postId)
+                ? state.likedPosts.map((p) => p.id == postId ? updated : p).toList()
+                : [...state.likedPosts, updated])
+            : state.likedPosts.where((p) => p.id != postId).toList(),
       );
-      rethrow;
+    } catch (_) {
+      ref.read(postCacheProvider.notifier).replace(current);
+      state = state.copyWith(
+        posts: state.posts.map((p) => p.id == postId ? current : p).toList(),
+        likedPosts: current.isLiked
+            ? (state.likedPosts.any((p) => p.id == postId)
+                ? state.likedPosts.map((p) => p.id == postId ? current : p).toList()
+                : [...state.likedPosts, current])
+            : state.likedPosts.where((p) => p.id != postId).toList(),
+      );
     }
   }
 }

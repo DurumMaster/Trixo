@@ -19,6 +19,7 @@ final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   return PostNotifier(
     repository: ref.read(postRepositoryProvider),
     userId: ref.watch(userIdProvider),
+    ref: ref,
   );
 });
 
@@ -129,13 +130,14 @@ class PostState {
 }
 
 class PostNotifier extends StateNotifier<PostState> {
+  final Ref ref;
   final PostRepository repository;
   final String? userId;
   static const int pageSize = 5;
   bool _isDisposed = false;
   final Map<HomeSection, Timer?> _debounceTimers = {};
 
-  PostNotifier({required this.repository, required this.userId})
+  PostNotifier({required this.repository, required this.userId, required this.ref})
       : super(PostState.initial()) {
     _initControllers();
     _initialLoad();
@@ -218,6 +220,7 @@ class PostNotifier extends StateNotifier<PostState> {
           try {
             final page = await repository.getForYouPosts(
                 userId!, pageSize, st.forYouOffset);
+            ref.read(postCacheProvider.notifier).upsertAll(page);
             final filtered = _mergePosts(initialLoad ? [] : st.posts, page);
             state = state.copyWith(sections: {
               ...state.sections,
@@ -245,6 +248,7 @@ class PostNotifier extends StateNotifier<PostState> {
 
           try {
             final page = await repository.getAllPosts(pageSize, st.restOffset);
+            ref.read(postCacheProvider.notifier).upsertAll(page);
             final filtered = _mergePosts(st.posts, page);
             state = state.copyWith(sections: {
               ...state.sections,
@@ -273,6 +277,7 @@ class PostNotifier extends StateNotifier<PostState> {
         try {
           final page =
               await repository.getPostsByPageRanking(pageSize, st.topOffset);
+          ref.read(postCacheProvider.notifier).upsertAll(page);
           final filtered = _mergePosts(initialLoad ? [] : st.posts, page);
           state = state.copyWith(sections: {
             ...state.sections,
@@ -300,6 +305,7 @@ class PostNotifier extends StateNotifier<PostState> {
         try {
           final page =
               await repository.getRecentPosts(pageSize, st.recentsOffset);
+          ref.read(postCacheProvider.notifier).upsertAll(page);
           final filtered = _mergePosts(initialLoad ? [] : st.posts, page);
           state = state.copyWith(sections: {
             ...state.sections,
@@ -337,39 +343,28 @@ class PostNotifier extends StateNotifier<PostState> {
   }
 
   Future<void> toggleLike(String postId) async {
-    final st = state.sections[state.currentSection]!;
-    final updated = st.posts.map((p) {
-      if (p.id == postId) {
-        return p.copyWith(
-          isLiked: !p.isLiked,
-          likesCount: p.likesCount + (p.isLiked ? -1 : 1),
-        );
-      }
-      return p;
-    }).toList();
+    // 1. Obtener el post actual desde la caché global
+    final currentPost = ref.read(postCacheProvider)[postId];
+    if (currentPost == null) return;
 
-    state = state.copyWith(sections: {
-      ...state.sections,
-      state.currentSection: st.copyWith(posts: updated),
-    });
+    // 2. Generar un nuevo post con el like invertido (optimista)
+    final optimistic = currentPost.copyWith(
+      isLiked: !currentPost.isLiked,
+      likesCount: currentPost.likesCount + (currentPost.isLiked ? -1 : 1),
+    );
+
+    // 3. Actualizar la caché global optimistamente
+    ref.read(postCacheProvider.notifier).replace(optimistic);
 
     try {
-      await repository.toggleLike(postId);
+      // 4. Enviar al servidor
+      final updated = await repository.toggleLike(postId);
+
+      // 5. Actualizar la caché con la respuesta real
+      ref.read(postCacheProvider.notifier).replace(updated);
     } catch (_) {
-      final reverted = updated.map((p) {
-        if (p.id == postId) {
-          return p.copyWith(
-            isLiked: !p.isLiked,
-            likesCount: p.likesCount + (p.isLiked ? -1 : 1),
-          );
-        }
-        return p;
-      }).toList();
-      state = state.copyWith(sections: {
-        ...state.sections,
-        state.currentSection: st.copyWith(posts: reverted),
-      });
-      rethrow;
+      // 6. Revertir si falla
+      ref.read(postCacheProvider.notifier).replace(currentPost);
     }
   }
 

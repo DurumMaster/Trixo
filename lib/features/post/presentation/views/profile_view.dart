@@ -344,8 +344,10 @@ class _ProfileViewState extends ConsumerState<ProfileView>
         delegate: SliverChildBuilderDelegate(
           (context, idx) {
             if (idx >= posts.length) return null;
-            final post = posts[idx];
-            final imageUrl = post.images.first;
+            final cache = ref.watch(postCacheProvider);
+            final realPost = cache[posts[idx].id] ?? posts[idx];
+            final imageUrl = realPost.images.first;
+
             return GestureDetector(
               onLongPressStart: (_) => _showZoomOverlay(imageUrl),
               onLongPressEnd: (_) => _removeZoomOverlay(),
@@ -518,25 +520,27 @@ class _ProfilePostsDetailScreenState
           itemCount: posts.length,
           itemBuilder: (context, i) {
             final post = posts[i];
+
+            final postCache = ref.watch(postCacheProvider);
+            final realPost = postCache[post.id] ?? post;
             final isLikedLocally = _toggledPostIds.contains(post.id)
                 ? !post.isLiked
                 : post.isLiked;
 
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: PostCard(
-                post: post.copyWith(isLiked: isLikedLocally),
-                onLike: () {
-                  setState(() {
-                    if (!_toggledPostIds.remove(post.id)) {
-                      _toggledPostIds.add(post.id);
-                    }
-                  });
-                },
-                onShare: () =>
-                    ref.read(postProvider.notifier).sharePost(post.images),
-              ),
-            );
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: PostCard(
+                  post: realPost,
+                  onLike: () {
+                    setState(() {
+                      if (!_toggledPostIds.remove(post.id)) {
+                        _toggledPostIds.add(post.id);
+                      }
+                    });
+                  },
+                  onShare: () =>
+                      ref.read(postProvider.notifier).sharePost(post.images),
+                ));
           },
         ),
       ),

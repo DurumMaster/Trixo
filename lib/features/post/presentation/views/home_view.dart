@@ -190,10 +190,13 @@ class HomeSectionPage extends ConsumerWidget {
           );
         }
         final post = secState.posts[i];
+        final cache = ref.watch(postCacheProvider);
+        final realPost = cache[post.id] ?? post;
         return PostCard(
-          post: post,
-          onLike: () => ref.read(postProvider.notifier).toggleLike(post.id),
-          onShare: () => ref.read(postProvider.notifier).sharePost(post.images),
+          post: realPost,
+          onLike: () => ref.read(postProvider.notifier).toggleLike(realPost.id),
+          onShare: () =>
+              ref.read(postProvider.notifier).sharePost(realPost.images),
         );
       },
     );
