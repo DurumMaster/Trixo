@@ -9,14 +9,12 @@ import 'package:http/http.dart' as http;
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
-// Proveedores Firebase + userId
 final firebaseUserProvider = StreamProvider<firebase_auth.User?>(
   (ref) => firebase_auth.FirebaseAuth.instance.authStateChanges(),
 );
 final userIdProvider =
     Provider<String?>((ref) => ref.watch(firebaseUserProvider).value?.uid);
 
-// PostProvider
 final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   return PostNotifier(
     repository: ref.read(postRepositoryProvider),
@@ -24,54 +22,36 @@ final postProvider = StateNotifierProvider<PostNotifier, PostState>((ref) {
   );
 });
 
-// Secciones
 enum HomeSection { forYou, top, recents }
 
-// Estado por sección
 class SectionState {
   final List<Post> posts;
-
-  // For You
   final int forYouOffset;
   final bool isLoadingForYou;
   final bool hasMoreForYou;
-
-  // Resto (fallback)
   final int restOffset;
   final bool isLoadingRest;
   final bool hasMoreRest;
-
-  // Top
   final int topOffset;
   final bool isLoadingTop;
   final bool hasMoreTop;
-
-  // Recents
   final int recentsOffset;
   final bool isLoadingRecents;
   final bool hasMoreRecents;
-
-  // Error común
   final bool hasError;
-
-  // Controller
   final ScrollController scrollController;
 
   const SectionState({
     this.posts = const [],
-    // For You
     this.forYouOffset = 0,
     this.isLoadingForYou = false,
     this.hasMoreForYou = true,
-    // Rest
     this.restOffset = 0,
     this.isLoadingRest = false,
     this.hasMoreRest = true,
-    // Top
     this.topOffset = 0,
     this.isLoadingTop = false,
     this.hasMoreTop = true,
-    // Recents
     this.recentsOffset = 0,
     this.isLoadingRecents = false,
     this.hasMoreRecents = true,
@@ -115,7 +95,6 @@ class SectionState {
   }
 }
 
-// Estado global
 class PostState {
   final Map<HomeSection, SectionState> sections;
   final HomeSection currentSection;
@@ -149,12 +128,12 @@ class PostState {
   }
 }
 
-// Notifier
 class PostNotifier extends StateNotifier<PostState> {
   final PostRepository repository;
   final String? userId;
   static const int pageSize = 5;
   bool _isDisposed = false;
+  final Map<HomeSection, Timer?> _debounceTimers = {};
 
   PostNotifier({required this.repository, required this.userId})
       : super(PostState.initial()) {
@@ -164,17 +143,20 @@ class PostNotifier extends StateNotifier<PostState> {
 
   void _initControllers() {
     for (final section in state.sections.keys) {
+      _debounceTimers[section] = null;
       state.sections[section]!.scrollController.addListener(() {
-        if (_shouldLoadMore(section)) {
-          loadMore(section);
-        }
+        _debounceTimers[section]?.cancel();
+        _debounceTimers[section] = Timer(const Duration(milliseconds: 200), () {
+          if (_shouldLoadMore(section)) {
+            loadMore(section);
+          }
+        });
       });
     }
   }
 
   Future<void> _initialLoad() async {
     if (userId == null) return;
-    // Solo cargar la sección "forYou" al inicio
     await _loadSection(HomeSection.forYou, initialLoad: true);
   }
 
@@ -197,9 +179,22 @@ class PostNotifier extends StateNotifier<PostState> {
     }
   }
 
+  List<Post> _mergePosts(List<Post> current, List<Post> incoming) {
+    final existingIds = current.map((p) => p.id).toSet();
+    return [...current, ...incoming.where((p) => !existingIds.contains(p.id))];
+  }
+
   Future<void> loadMore(HomeSection section) async {
     if (_isDisposed) return;
     await _loadSection(section);
+    final controller = state.sections[section]!.scrollController;
+    if (controller.hasClients) {
+      controller.animateTo(
+        controller.offset + 100,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   Future<void> _loadSection(HomeSection section,
@@ -210,9 +205,7 @@ class PostNotifier extends StateNotifier<PostState> {
 
     switch (section) {
       case HomeSection.forYou:
-        // Primero recomendados
         if (st.hasMoreForYou) {
-          // marcaremos isLoadingForYou
           state = state.copyWith(sections: {
             ...state.sections,
             section: st.copyWith(
@@ -225,60 +218,47 @@ class PostNotifier extends StateNotifier<PostState> {
           try {
             final page = await repository.getForYouPosts(
                 userId!, pageSize, st.forYouOffset);
-            final hasMore = page.isNotEmpty;
-            final merged = initialLoad ? page : [...st.posts, ...page];
-
+            final filtered = _mergePosts(initialLoad ? [] : st.posts, page);
             state = state.copyWith(sections: {
               ...state.sections,
               section: st.copyWith(
-                posts: merged,
+                posts: filtered,
                 forYouOffset: st.forYouOffset + page.length,
-                hasMoreForYou: hasMore,
+                hasMoreForYou: page.isNotEmpty,
                 isLoadingForYou: false,
               ),
             });
           } catch (e) {
             state = state.copyWith(sections: {
               ...state.sections,
-              section: st.copyWith(
-                isLoadingForYou: false,
-                hasError: true,
-              ),
+              section: st.copyWith(isLoadingForYou: false, hasError: true),
             });
           }
           return;
         }
-        // Luego fallback "rest"
+
         if (st.hasMoreRest) {
           state = state.copyWith(sections: {
             ...state.sections,
-            section: st.copyWith(
-              isLoadingRest: true,
-              hasError: false,
-            ),
+            section: st.copyWith(isLoadingRest: true, hasError: false),
           });
 
           try {
             final page = await repository.getAllPosts(pageSize, st.restOffset);
-            final hasMore = page.isNotEmpty;
-            final merged = [...st.posts, ...page];
-
+            final filtered = _mergePosts(st.posts, page);
             state = state.copyWith(sections: {
               ...state.sections,
               section: st.copyWith(
-                posts: merged,
+                posts: filtered,
                 restOffset: st.restOffset + page.length,
-                hasMoreRest: hasMore,
+                hasMoreRest: page.isNotEmpty,
                 isLoadingRest: false,
               ),
             });
           } catch (e) {
             state = state.copyWith(sections: {
               ...state.sections,
-              section: st.copyWith(
-                isLoadingRest: false,
-                hasError: true,
-              ),
+              section: st.copyWith(isLoadingRest: false, hasError: true),
             });
           }
         }
@@ -293,25 +273,20 @@ class PostNotifier extends StateNotifier<PostState> {
         try {
           final page =
               await repository.getPostsByPageRanking(pageSize, st.topOffset);
-          final hasMore = page.isNotEmpty;
-          final merged = initialLoad ? page : [...st.posts, ...page];
-
+          final filtered = _mergePosts(initialLoad ? [] : st.posts, page);
           state = state.copyWith(sections: {
             ...state.sections,
             section: st.copyWith(
-              posts: merged,
+              posts: filtered,
               topOffset: st.topOffset + page.length,
-              hasMoreTop: hasMore,
+              hasMoreTop: page.isNotEmpty,
               isLoadingTop: false,
             ),
           });
         } catch (e) {
           state = state.copyWith(sections: {
             ...state.sections,
-            section: st.copyWith(
-              isLoadingTop: false,
-              hasError: true,
-            ),
+            section: st.copyWith(isLoadingTop: false, hasError: true),
           });
         }
         break;
@@ -325,25 +300,20 @@ class PostNotifier extends StateNotifier<PostState> {
         try {
           final page =
               await repository.getRecentPosts(pageSize, st.recentsOffset);
-          final hasMore = page.isNotEmpty;
-          final merged = initialLoad ? page : [...st.posts, ...page];
-
+          final filtered = _mergePosts(initialLoad ? [] : st.posts, page);
           state = state.copyWith(sections: {
             ...state.sections,
             section: st.copyWith(
-              posts: merged,
+              posts: filtered,
               recentsOffset: st.recentsOffset + page.length,
-              hasMoreRecents: hasMore,
+              hasMoreRecents: page.isNotEmpty,
               isLoadingRecents: false,
             ),
           });
         } catch (e) {
           state = state.copyWith(sections: {
             ...state.sections,
-            section: st.copyWith(
-              isLoadingRecents: false,
-              hasError: true,
-            ),
+            section: st.copyWith(isLoadingRecents: false, hasError: true),
           });
         }
         break;
@@ -352,7 +322,6 @@ class PostNotifier extends StateNotifier<PostState> {
 
   void setCurrentSection(HomeSection sec) {
     state = state.copyWith(currentSection: sec);
-    // Cargar si no hay nada aún
     if (state.sections[sec]!.posts.isEmpty) {
       _loadSection(sec, initialLoad: true);
     }
@@ -369,7 +338,6 @@ class PostNotifier extends StateNotifier<PostState> {
 
   Future<void> toggleLike(String postId) async {
     final st = state.sections[state.currentSection]!;
-    // Actualización optimista solo en la sección actual
     final updated = st.posts.map((p) {
       if (p.id == postId) {
         return p.copyWith(
@@ -388,7 +356,6 @@ class PostNotifier extends StateNotifier<PostState> {
     try {
       await repository.toggleLike(postId);
     } catch (_) {
-      // revertir
       final reverted = updated.map((p) {
         if (p.id == postId) {
           return p.copyWith(
@@ -434,6 +401,9 @@ class PostNotifier extends StateNotifier<PostState> {
   @override
   void dispose() {
     _isDisposed = true;
+    _debounceTimers.forEach((_, timer) {
+      timer?.cancel();
+    });
     for (var st in state.sections.values) {
       st.scrollController.dispose();
     }

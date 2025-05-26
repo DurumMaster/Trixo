@@ -46,9 +46,9 @@ class _ProfileViewState extends ConsumerState<ProfileView>
           state.error == null) {
         final notifier = ref.read(profileProvider(widget.userId).notifier);
         if (state.currentTab == 0) {
-          notifier.loadMorePosts();
+          notifier.loadMorePosts(scrollController: _scrollController);
         } else {
-          notifier.loadMoreLikedPosts();
+          notifier.loadMoreLikedPosts(scrollController: _scrollController);
         }
       }
     });

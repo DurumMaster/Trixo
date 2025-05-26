@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sign_button/sign_button.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
-import 'package:trixo_frontend/features/auth/presentation/providers/auth_provider.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 
 import 'package:trixo_frontend/features/auth/presentation/providers/login_form_provider.dart';

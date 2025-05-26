@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
@@ -43,6 +44,8 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         likedPosts: likedPosts,
         postsOffset: posts.length,
         likedPostsOffset: likedPosts.length,
+        hasMorePosts: posts.length == pageSize,
+        hasMoreLikedPosts: likedPosts.length == pageSize,
         isLoading: false,
       );
     } catch (e) {
@@ -50,8 +53,8 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     }
   }
 
-  Future<void> loadMorePosts() async {
-    if (_isLoadingMorePosts) return;
+  Future<void> loadMorePosts({ScrollController? scrollController}) async {
+    if (_isLoadingMorePosts || !state.hasMorePosts) return;
     _isLoadingMorePosts = true;
 
     try {
@@ -61,21 +64,34 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         state.postsOffset,
       );
 
-      if (newPosts.isNotEmpty) {
-        state = state.copyWith(
-          posts: [...state.posts, ...newPosts],
-          postsOffset: state.postsOffset + newPosts.length,
+      final existingIds = state.posts.map((e) => e.id).toSet();
+      final filteredNewPosts =
+          newPosts.where((p) => !existingIds.contains(p.id)).toList();
+
+      final updatedPosts = [...state.posts, ...filteredNewPosts];
+
+      state = state.copyWith(
+        posts: updatedPosts,
+        postsOffset: state.postsOffset + filteredNewPosts.length,
+        hasMorePosts: filteredNewPosts.length == pageSize,
+      );
+
+      if (scrollController != null && scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.offset + 100,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
         );
       }
     } catch (e) {
-      // Opcional: manejar error al cargar más posts
+      // Error opcional
     } finally {
       _isLoadingMorePosts = false;
     }
   }
 
-  Future<void> loadMoreLikedPosts() async {
-    if (_isLoadingMoreLikedPosts) return;
+  Future<void> loadMoreLikedPosts({ScrollController? scrollController}) async {
+    if (_isLoadingMoreLikedPosts || !state.hasMoreLikedPosts) return;
     _isLoadingMoreLikedPosts = true;
 
     try {
@@ -85,14 +101,27 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         state.likedPostsOffset,
       );
 
-      if (newLikedPosts.isNotEmpty) {
-        state = state.copyWith(
-          likedPosts: [...state.likedPosts, ...newLikedPosts],
-          likedPostsOffset: state.likedPostsOffset + newLikedPosts.length,
+      final existingIds = state.likedPosts.map((e) => e.id).toSet();
+      final filteredNewLiked =
+          newLikedPosts.where((p) => !existingIds.contains(p.id)).toList();
+
+      final updatedLikedPosts = [...state.likedPosts, ...filteredNewLiked];
+
+      state = state.copyWith(
+        likedPosts: updatedLikedPosts,
+        likedPostsOffset: state.likedPostsOffset + filteredNewLiked.length,
+        hasMoreLikedPosts: filteredNewLiked.length == pageSize,
+      );
+
+      if (scrollController != null && scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.offset + 100,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
         );
       }
     } catch (e) {
-      // Opcional: manejar error al cargar más liked posts
+      // Error opcional
     } finally {
       _isLoadingMoreLikedPosts = false;
     }
@@ -103,7 +132,6 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
   }
 
   Future<void> toggleLikePost(String postId) async {
-    // Preparar nuevos lists
     final updatedPosts = state.posts.map((p) {
       if (p.id == postId) {
         return p.copyWith(
@@ -117,7 +145,6 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     final updatedLiked = state.likedPosts
         .map((p) {
           if (p.id == postId) {
-            // En likedPosts, si pasas de liked→no liked, lo eliminas
             return p.copyWith(
               isLiked: !p.isLiked,
               likesCount: p.likesCount + (p.isLiked ? -1 : 1),
@@ -125,11 +152,9 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
           }
           return p;
         })
-        // Si el post deja de estar liked, lo quitamos de la lista:
         .where((p) => p.isLiked)
         .toList();
 
-    // Emitir estado optimista
     state = state.copyWith(
       posts: updatedPosts,
       likedPosts: updatedLiked,
@@ -137,11 +162,9 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
 
     try {
       await repository.toggleLike(postId);
-      // Nada más: ya quedó actualizado
     } catch (e) {
-      // Si falla, revertimos
       state = state.copyWith(
-        posts: state.posts, // aquí podrías recargar desde backend
+        posts: state.posts,
         likedPosts: state.likedPosts,
       );
       rethrow;
@@ -158,9 +181,11 @@ class ProfileState {
   final int currentTab;
   final bool isLoading;
   final Object? error;
+  final bool hasMorePosts;
+  final bool hasMoreLikedPosts;
 
-  int get followers => 0; //user?.badges ?? 0;
-  int get following => 0; //user?.likesReceived ?? 0;
+  int get followers => 0;
+  int get following => 0;
   int get designs => posts.length;
 
   ProfileState({
@@ -172,6 +197,8 @@ class ProfileState {
     this.currentTab = 0,
     this.isLoading = false,
     this.error,
+    this.hasMorePosts = true,
+    this.hasMoreLikedPosts = true,
   });
 
   ProfileState copyWith({
@@ -183,16 +210,20 @@ class ProfileState {
     int? currentTab,
     bool? isLoading,
     Object? error,
+    bool? hasMorePosts,
+    bool? hasMoreLikedPosts,
   }) {
     return ProfileState(
       user: user ?? this.user,
       posts: posts ?? this.posts,
       likedPosts: likedPosts ?? this.likedPosts,
-      currentTab: currentTab ?? this.currentTab,
       postsOffset: postsOffset ?? this.postsOffset,
       likedPostsOffset: likedPostsOffset ?? this.likedPostsOffset,
+      currentTab: currentTab ?? this.currentTab,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
+      hasMorePosts: hasMorePosts ?? this.hasMorePosts,
+      hasMoreLikedPosts: hasMoreLikedPosts ?? this.hasMoreLikedPosts,
     );
   }
 }
