@@ -20,7 +20,7 @@ class User {
       'username': username,
       'bio': bio,
       'email': email,
-      'avatarImg': avatarImg,
+      'avatar_img': avatarImg,
       'registrationDate': registrationDate,
     };
   }

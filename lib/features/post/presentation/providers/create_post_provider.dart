@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
-import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
-import 'package:trixo_frontend/features/auth/infrastructure/repository/auth_repository_impl.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
