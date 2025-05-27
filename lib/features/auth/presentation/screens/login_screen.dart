@@ -222,7 +222,7 @@ class LoginScreen extends ConsumerWidget {
 
     if(user != null){
       final userDB = await authRepository.getUserById(userId: user.uid);
-      if(userDB.id.isEmpty){
+      if(userDB.id.isEmpty && userDB.email.isEmpty){
         await ref.watch(authRepositoryProvider).registerUser(
           id: user.uid, 
           username: user.displayName ?? '', 

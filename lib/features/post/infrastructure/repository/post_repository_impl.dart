@@ -77,6 +77,8 @@ class PostRepositoryImpl extends PostRepository {
       caption: post.caption,
       images: urls,
       tags: post.tags,
+      user: post.user,
+      createdAt: post.createdAt,
     );
 
     // 3) Llamar al endpoint de creación

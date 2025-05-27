@@ -1,4 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
+import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
+import 'package:trixo_frontend/features/auth/infrastructure/repository/auth_repository_impl.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
@@ -46,22 +51,36 @@ class PostSubmitNotifier extends StateNotifier<PostSubmitState> {
   Future<bool> submit() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
+
       final cleanedTags = state.tags.map((tag) {
         final runes = tag.runes.toList();
         if (runes.length <= 1) return tag;
         return String.fromCharCodes(runes.sublist(1)).trim();
       }).toList();
 
-      final post = PostDto(
-        id: '',
-        caption: state.description,
-        images: images,
-        tags: cleanedTags,
-      );
-      await _repo.submitPost(post);
+      final FirebaseAuth auth = FirebaseAuth.instance;
+      final user = auth.currentUser;
 
-      state = state.copyWith(isLoading: false);
-      return true;
+      if(user != null){
+        final userEntity = await _repo.getUser(user.uid);
+
+        final post = PostDto(
+          id: '',
+          caption: state.description,
+          images: images,
+          tags: cleanedTags,
+          user: userEntity,
+          createdAt: Timestamp.now(),
+        );
+        await _repo.submitPost(post);
+
+        state = state.copyWith(isLoading: false);
+        return true;
+      } else {
+        return false;
+      }
+
+      
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;

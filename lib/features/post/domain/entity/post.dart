@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,13 +54,16 @@ class PostDto {
   final String caption;
   final List<String> images;
   final List<String> tags;
-
+  final User user;
+  final Timestamp createdAt;
 
   PostDto({
     String? id,
     required this.caption,
     required this.images,
     required this.tags,
+    required this.user,
+    required this.createdAt,
   }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toJson() => {
@@ -67,5 +71,7 @@ class PostDto {
         'caption': caption,
         'images': images,
         'tags': tags,
+        'user': user.toJson(),
+        'created_at': createdAt.toDate().toIso8601String(),
       };
 }
