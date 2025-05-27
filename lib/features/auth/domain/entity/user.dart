@@ -13,4 +13,15 @@ class User {
       required this.bio,
       required this.email,
       required this.registrationDate});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'bio': bio,
+      'email': email,
+      'avatar_img': avatarImg,
+      'registrationDate': registrationDate,
+    };
+  }
 }

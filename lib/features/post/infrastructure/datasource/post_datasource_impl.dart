@@ -203,9 +203,12 @@ class PostDatasourceImpl extends PostDatasource {
       formData.files.add(
         MapEntry(
           'file',
-          await MultipartFile.fromFile(path, filename: path.split('/').last),
+          await MultipartFile.fromFile(
+            path, 
+            filename: path.split('/').last,
+            contentType: DioMediaType('image', 'jpeg'),
         ),
-      );
+      ));
     }
     final resp = await dio.post<List>(
       '/posts/upload',
