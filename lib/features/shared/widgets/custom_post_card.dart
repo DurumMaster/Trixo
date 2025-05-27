@@ -211,23 +211,37 @@ class _PostCardState extends ConsumerState<PostCard>
           },
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: CachedNetworkImage(
-              imageUrl: widget.post.images[index],
-              fit: BoxFit.cover,
-              width: double.infinity,
-              progressIndicatorBuilder: (_, __, ___) => Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isDark ? AppColors.white : AppColors.black,
+            child: AspectRatio(
+              aspectRatio:
+                  4 / 5,
+              child: Container(
+                color: isDark
+                    ? AppColors.backgroundDark
+                    : AppColors
+                        .backgroundLight,
+                child: ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.post.images[index],
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    progressIndicatorBuilder: (_, __, ___) => Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isDark ? AppColors.white : AppColors.black,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => Icon(
+                      Icons.replay_rounded,
+                      size: 50,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                 ),
-              ),
-              errorWidget: (_, __, ___) => Icon(
-                Icons.replay_rounded,
-                size: 50,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
               ),
             ),
           ),
