@@ -33,7 +33,7 @@ class _CustomBottomNavigationState extends ConsumerState<CustomBottomNavigation>
         context.go('/home');
         break;
       case 1:
-        context.go('/home');
+        context.go('/search');
         break;
       case 2:
         context.go('/image-picker');

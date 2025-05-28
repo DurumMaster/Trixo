@@ -84,4 +84,9 @@ class PostRepositoryImpl extends PostRepository {
     // 3) Llamar al endpoint de creación
     await datasource.createPost(dto);
   }
+
+  @override
+  Future<List<Post>> searchPosts(String query, int limit, int offset) {
+    return datasource.searchPosts(query, limit, offset);
+  }
 }

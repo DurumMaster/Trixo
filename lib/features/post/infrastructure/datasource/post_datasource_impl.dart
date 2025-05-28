@@ -226,6 +226,29 @@ class PostDatasourceImpl extends PostDatasource {
       data: post.toJson(),
     );
   }
+
+  @override
+  Future<List<Post>> searchPosts(String caption, int limit, int offset) async {
+    try {
+      final List<Post> posts = [];
+      if(caption.isNotEmpty) {
+        final response = await dio.get('/posts/search', queryParameters: {
+          'caption': caption,
+          'limit': limit,
+          'offset': offset,
+        });
+
+        for (final post in response.data ?? []) {
+          posts.add(PostMapper.postJsonToEntity(post));
+        }
+      }
+
+      return posts;
+    } on DioException catch (e) {
+      throw Exception('Error al buscar posts: ${e.message}');
+    }
+  }
+
 }
 
   // Future<void> deleteComment(String commentId) async {

@@ -482,6 +482,7 @@ class _ProfilePostsDetailScreenState
     });
   }
 
+
   /// Se llama **después** de que el pop haya ocurrido.
   void _onPopInvoked(bool didPop, Object? result) {
     if (didPop && _toggledPostIds.isNotEmpty) {

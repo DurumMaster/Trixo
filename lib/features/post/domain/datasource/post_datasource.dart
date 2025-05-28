@@ -7,6 +7,7 @@ abstract class PostDatasource {
   Future<List<Post>> getForYouPosts(String userID, int limit, int offset);
   Future<List<Post>> getRecentPosts(int limit, int offset);
   Future<List<Post>> getAllPosts(int limit, int offset);
+  Future<List<Post>> searchPosts(String query, int limit, int offset);
   Future<Post> toggleLike(String postId);
   Future<List<Comment>> getComments(String postId);
   Future<void> sendComment(Comment comment);

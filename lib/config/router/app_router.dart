@@ -4,6 +4,7 @@ import 'package:trixo_frontend/features/auth/presentation/screens/onboarding_scr
 
 import 'package:trixo_frontend/features/auth/presentation/screens/screens.dart';
 import 'package:trixo_frontend/config/config.dart';
+import 'package:trixo_frontend/features/post/presentation/views/search_view.dart';
 import 'package:trixo_frontend/features/shared/screens/screens.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
 
@@ -48,6 +49,11 @@ final goRouterProvider = Provider((ref) {
               GoRoute(
                 path: '/home',
                 builder: (context, state) => const HomeView(),
+              ),
+              //* Search View
+              GoRoute(
+                path: '/search',
+                builder: (context, state) => const SearchView(),
               ),
               //* Profile View
               GoRoute(
