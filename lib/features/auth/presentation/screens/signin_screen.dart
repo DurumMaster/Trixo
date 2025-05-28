@@ -9,58 +9,62 @@ import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/config/config.dart';
 
-class SignInScreen extends ConsumerWidget {
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends ConsumerState<SignInScreen> {
+  late TextEditingController usernameController;
+
+  @override
+  void initState() {
+    super.initState();
+    final username = ref.read(signUpFormProvider).username.value;
+    usernameController = TextEditingController(text: username);
+  }
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> submit() async {
+    final created = await ref.read(signUpFormProvider.notifier).onFormSubmit();
+    if (!created && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Error al registrarte. Verifica los datos ingresados.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    if (context.mounted) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _EmailVerificationDialog(ref: ref),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final signUpForm = ref.watch(signUpFormProvider);
     final notifier = ref.read(signUpFormProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
-    final usernameController = TextEditingController();
-    
-    Future<void> submit() async {
-      final created = await notifier.onFormSubmit();
-      if (!created && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Error al registrarte. Verifica los datos ingresados.',
-            ),
-          ),
-        );
-
-        FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-        final user = firebaseAuth.currentUser;
-        
-        if(user != null){
-          await ref.watch(authRepositoryProvider).registerUser(
-            id: user.uid, 
-            username: usernameController.text, 
-            email: user.email!, 
-            avatar_img: user.photoURL ?? '', 
-            registration_date: DateTime.now(),
-          );
-        }
-
-        return;
-      }
-      // Se envió el email de verificación: abrimos el diálogo
-      if (context.mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => _EmailVerificationDialog(ref: ref),
-        );
-      }
-    }
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        appBar: AppBar(
-          leading: const CustomBackArrow(route: '/login'),
-        ),
+        appBar: AppBar(leading: const CustomBackArrow(route: '/login')),
         body: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           child: Padding(
@@ -83,8 +87,8 @@ class SignInScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 CustomTextFormField(
                   label: 'Nombre de usuario',
-                  onChanged: notifier.onUsernameChanged,
                   controller: usernameController,
+                  onChanged: notifier.onUsernameChanged,
                   errorMessage: signUpForm.isFormPosted
                       ? signUpForm.username.errorMessage
                       : null,
@@ -126,7 +130,7 @@ class SignInScreen extends ConsumerWidget {
 
 class _EmailVerificationDialog extends StatefulWidget {
   final WidgetRef ref;
-  
+
   const _EmailVerificationDialog({required this.ref});
 
   @override
@@ -135,8 +139,8 @@ class _EmailVerificationDialog extends StatefulWidget {
 }
 
 class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
-  bool _checking = false;
   Timer? _timer;
+  bool _hasRegisteredInDB = false;
 
   @override
   void initState() {
@@ -146,17 +150,28 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
   }
 
   Future<void> _reloadUser() async {
-    setState(() => _checking = true);
     final verified = await AuthService().isEmailVerified();
-    setState(() => _checking = false);
 
-    if (verified) {
+    if (verified && !_hasRegisteredInDB) {
       _timer?.cancel();
+      _hasRegisteredInDB = true;
+
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        await widget.ref.read(authRepositoryProvider).registerUser(
+              id: user.uid,
+              username: widget.ref.read(signUpFormProvider).username.value,
+              email: user.email!,
+              avatar_img: user.photoURL ?? '',
+              registration_date: DateTime.now(),
+            );
+      }
+
       final hasPreferences =
           await widget.ref.read(hasPreferencesProvider.future);
       if (mounted) {
         if (hasPreferences) {
-          
           context.go('/home'); // Si tiene preferencias, ir al home
         } else {
           context
@@ -184,6 +199,7 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
         TextButton(
           onPressed: () {
             _timer?.cancel();
+
             Navigator.of(context).pop(); // Cierra y regresa al registro
           },
           child: Text(

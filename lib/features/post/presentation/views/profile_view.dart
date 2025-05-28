@@ -310,7 +310,7 @@ class _ProfileViewState extends ConsumerState<ProfileView>
               ? 'Todavía no has dado like a ningún diseño'
               : 'Este usuario aún no ha dado like a ningún diseño')
           : (isUser
-              ? 'Sube tu primer diseño y empieza a destacar 🎨'
+              ? 'Sube tu primer diseño y empieza a destacar'
               : 'Este usuario aún no tiene diseños');
       final icon = isLiked ? Icons.disabled_visible : Icons.draw_rounded;
       return SliverFillRemaining(
