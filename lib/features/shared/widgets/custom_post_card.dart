@@ -69,10 +69,10 @@ class _PostCardState extends ConsumerState<PostCard>
     _generateRandomEmojis();
     _overlayPopupController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
     );
 
-    _overlayPopupAnimation = Tween<double>(begin: 0.0, end: 1.5).animate(
+    _overlayPopupAnimation = Tween<double>(begin: 0.0, end: 1.2).animate(
       CurvedAnimation(
         parent: _overlayPopupController,
         curve: Curves.easeOutBack,
@@ -212,13 +212,11 @@ class _PostCardState extends ConsumerState<PostCard>
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: AspectRatio(
-              aspectRatio:
-                  4 / 5,
+              aspectRatio: 4 / 5,
               child: Container(
                 color: isDark
                     ? AppColors.backgroundDark
-                    : AppColors
-                        .backgroundLight,
+                    : AppColors.backgroundLight,
                 child: ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
@@ -739,34 +737,35 @@ class _PostCardState extends ConsumerState<PostCard>
   Widget _buildCommentsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Visibility(
-        visible: widget.post.commentsCount > 0,
-        child: GestureDetector(
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              builder: (_) => CommentBottomSheet(
-                postId: widget.post.id,
-                userId: FirebaseAuth.instance.currentUser?.uid ?? "",
-              ),
-            );
-          },
-          child: Text(
-            Intl.plural(
-              widget.post.commentsCount,
-              one: 'Ver todos los comentarios',
-              other: 'Ver los ${widget.post.commentsCount} comentarios',
+      child: GestureDetector(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            style: TextStyle(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondaryLight,
+            builder: (_) => CommentBottomSheet(
+              postId: widget.post.id,
+              userId: FirebaseAuth.instance.currentUser?.uid ?? "",
             ),
-          ),
+          );
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              widget.post.commentsCount == 0
+                  ? 'Ver todos los comentarios'
+                  : 'Ver los ${widget.post.commentsCount} comentarios',
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
+            ),
+            Text(HumanFormats.timeAgo(DateTime.parse(widget.post.createdAt))),
+          ],
         ),
       ),
     );

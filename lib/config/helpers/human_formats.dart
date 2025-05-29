@@ -14,6 +14,7 @@ class HumanFormats {
     if (diff.inMinutes < 1) return 'justo ahora';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m';
     if (diff.inHours < 24) return '${diff.inHours}h';
-    return '${diff.inDays}d';
+    if (diff.inDays < 7) return '${diff.inDays}d';
+    return DateFormat('dd - MM').format(dateTime);
   }
 }
