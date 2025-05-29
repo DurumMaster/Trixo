@@ -51,7 +51,7 @@ class SearchView extends ConsumerWidget {
               icon:
                   Icon(Icons.tag, color: isDark ? Colors.white : Colors.black),
               onPressed: () async {
-                final selectedTags = await Navigator.of(context).push<List<String>>(
+                final selectedTags = await Navigator.of(context, rootNavigator: true).push<List<String>>(
                   MaterialPageRoute(
                     builder: (_) => CreatePostSelectTagsView(
                       availableTags: AppConstants().allPreferences,
@@ -161,8 +161,7 @@ class SearchView extends ConsumerWidget {
 
                     return GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
+                        Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
                             builder: (_) => PostDetailScreen(
                               initialIndex: index,
