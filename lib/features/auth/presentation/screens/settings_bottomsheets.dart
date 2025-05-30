@@ -70,10 +70,19 @@ class _EditProfileBottomSheetState
 
     final repo = ref.read(profileRepositoryProvider);
 
-    String newImage = "";
+    String? finalAvatarUrl;
 
-    if(_newImagePath != null){
-      newImage = await repo.uploadAvatar(uid, _newImagePath!);
+    // Si la imagen ha cambiado y es local, la subimos
+    if (_newImagePath != null &&
+        _newImagePath!.isNotEmpty &&
+        !_newImagePath!.startsWith('http')) {
+      finalAvatarUrl = await repo.uploadAvatar(uid, _newImagePath!);
+    }
+
+    // Si no se ha cambiado (sigue siendo una URL), mantenemos la anterior
+    if (_newImagePath == widget.user.avatarImg ||
+        (_newImagePath?.startsWith('http') ?? false)) {
+      finalAvatarUrl = widget.user.avatarImg;
     }
 
     final updated = UserUpdate(
@@ -83,7 +92,8 @@ class _EditProfileBottomSheetState
       bio: _bioController.text.trim() != widget.user.bio
           ? _bioController.text.trim()
           : null,
-      avatarImg: newImage != widget.user.avatarImg && newImage.isNotEmpty ? newImage : null,
+      avatarImg:
+          finalAvatarUrl != widget.user.avatarImg ? finalAvatarUrl : null,
     );
 
     final success = await repo.updateUser(uid, updated);
