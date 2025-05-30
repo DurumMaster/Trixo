@@ -170,6 +170,16 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       rethrow;
     }
   }
+
+  Future<void> reloadUser() async {
+    try {
+      final fresh = await repository.getUser(userId);
+      state = state.copyWith(user: fresh);
+    } catch (e) {
+      // opcional: puedes manejar errores si quieres
+    }
+  }
+  
 }
 
 class ProfileState {

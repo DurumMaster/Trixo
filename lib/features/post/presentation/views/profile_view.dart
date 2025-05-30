@@ -184,8 +184,14 @@ class _ProfileViewState extends ConsumerState<ProfileView>
                                 Icons.menu,
                                 color: Colors.white,
                               ),
-                              onPressed: () {
-                                context.push('/settings');
+                              onPressed: () async {
+                                final didUpdate =
+                                    await context.push<bool>('/settings');
+                                if (didUpdate == true) {
+                                  final notifier = ref.read(
+                                      profileProvider(widget.userId).notifier);
+                                  await notifier.reloadUser();
+                                }
                               },
                             ),
                           ),

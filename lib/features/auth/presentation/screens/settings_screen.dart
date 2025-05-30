@@ -65,12 +65,15 @@ class SettingsScreen extends ConsumerWidget {
               final user = await postRepository.getUser(uid);
 
               if (context.mounted) {
-                showModalBottomSheet(
+                final didUpdate = await showModalBottomSheet<bool>(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (_) => EditProfileBottomSheet(user: user),
                 );
+                if (didUpdate == true && context.mounted) {
+                  context.pop(true);
+                }
               }
             },
           ),

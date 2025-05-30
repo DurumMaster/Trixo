@@ -98,7 +98,8 @@ class _EditProfileBottomSheetState
 
     final success = await repo.updateUser(uid, updated);
     if (!mounted) return;
-    Navigator.of(context).pop();
+
+    Navigator.of(context).pop(success);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
