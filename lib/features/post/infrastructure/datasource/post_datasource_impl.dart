@@ -219,6 +219,24 @@ class PostDatasourceImpl extends PostDatasource {
   }
 
   @override
+  Future<String> uploadAvatar(String userId, String avatarPath) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        avatarPath,
+        contentType: DioMediaType('image', 'jpeg'),
+      ),
+    });
+
+    final response = await dio.post<String>(
+      '/users/$userId/uploadImage',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+
+    return response.data ?? '';
+  }
+
+  @override
   Future<void> createPost(PostDto post) async {
     await dio.post<String>(
       '/posts/create',

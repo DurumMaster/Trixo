@@ -16,5 +16,6 @@ abstract class PostRepository {
   Future<List<String>> pickImages();
   Future<void> sendReport(String postId, String reason);
   Future<void> submitPost(PostDto post);
+  Future<String> uploadAvatar(String userId, String avatarPath);
   Future<bool> updateUser(String uid, UserUpdate user);
 }

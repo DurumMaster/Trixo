@@ -70,6 +70,12 @@ class _EditProfileBottomSheetState
 
     final repo = ref.read(profileRepositoryProvider);
 
+    String newImage = "";
+
+    if(_newImagePath != null){
+      newImage = await repo.uploadAvatar(uid, _newImagePath!);
+    }
+
     final updated = UserUpdate(
       username: _usernameController.text.trim() != widget.user.username
           ? _usernameController.text.trim()
@@ -77,7 +83,7 @@ class _EditProfileBottomSheetState
       bio: _bioController.text.trim() != widget.user.bio
           ? _bioController.text.trim()
           : null,
-      avatarImg: _newImagePath != widget.user.avatarImg ? _newImagePath : null,
+      avatarImg: newImage != widget.user.avatarImg && newImage.isNotEmpty ? newImage : null,
     );
 
     final success = await repo.updateUser(uid, updated);
