@@ -18,4 +18,5 @@ abstract class PostDatasource {
   Future<void> sendReport(String postId, String reason);
   Future<List<String>> uploadImages(List<String> localPaths);
   Future<void> createPost(PostDto post);
+  Future<bool> updateUser(String uid, UserUpdate user);
 }

@@ -67,7 +67,7 @@ class PostRepositoryImpl extends PostRepository {
     return datasource.getAllPosts(limit, offset);
   }
 
- @override
+  @override
   Future<void> submitPost(PostDto post) async {
     // 1) Subir imágenes y obtener URLs
     final urls = await datasource.uploadImages(post.images);
@@ -88,5 +88,10 @@ class PostRepositoryImpl extends PostRepository {
   @override
   Future<List<Post>> searchPosts(String query, int limit, int offset) {
     return datasource.searchPosts(query, limit, offset);
+  }
+
+  @override
+  Future<bool> updateUser(String uid, UserUpdate user) {
+    return datasource.updateUser(uid, user);
   }
 }

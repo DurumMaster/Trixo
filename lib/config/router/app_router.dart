@@ -111,6 +111,10 @@ final goRouterProvider = Provider((ref) {
           );
         },
       ),
+      //* Settings
+      GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsScreen()),
     ],
     //* Bloquear si no se está autenticado de alguna manera
     // redirect: (context, state) {

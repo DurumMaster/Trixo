@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/config/config.dart';
@@ -184,7 +185,7 @@ class _ProfileViewState extends ConsumerState<ProfileView>
                                 color: Colors.white,
                               ),
                               onPressed: () {
-                                // TODO: IMPLEMENTAR AJUSTES
+                                context.push('/settings');
                               },
                             ),
                           ),
@@ -481,7 +482,6 @@ class _ProfilePostsDetailScreenState
       );
     });
   }
-
 
   /// Se llama **después** de que el pop haya ocurrido.
   void _onPopInvoked(bool didPop, Object? result) {

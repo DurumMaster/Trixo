@@ -200,13 +200,12 @@ class PostDatasourceImpl extends PostDatasource {
   Future<List<String>> uploadImages(List<String> localPaths) async {
     final formData = FormData();
     for (var path in localPaths) {
-      formData.files.add(
-        MapEntry(
-          'file',
-          await MultipartFile.fromFile(
-            path, 
-            filename: path.split('/').last,
-            contentType: DioMediaType('image', 'jpeg'),
+      formData.files.add(MapEntry(
+        'file',
+        await MultipartFile.fromFile(
+          path,
+          filename: path.split('/').last,
+          contentType: DioMediaType('image', 'jpeg'),
         ),
       ));
     }
@@ -231,7 +230,7 @@ class PostDatasourceImpl extends PostDatasource {
   Future<List<Post>> searchPosts(String caption, int limit, int offset) async {
     try {
       final List<Post> posts = [];
-      if(caption.isNotEmpty) {
+      if (caption.isNotEmpty) {
         final response = await dio.get('/posts/search', queryParameters: {
           'caption': caption,
           'limit': limit,
@@ -246,6 +245,34 @@ class PostDatasourceImpl extends PostDatasource {
       return posts;
     } on DioException catch (e) {
       throw Exception('Error al buscar posts: ${e.message}');
+    }
+  }
+
+  @override
+  Future<bool> updateUser(String uid, UserUpdate user) async {
+    try {
+      final response = await dio.put(
+        '/users/$uid',
+        data: user.toJson(),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      // Devuelve true si el servidor respondió con 200 OK
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      // Aquí podrías manejar errores específicos, por ejemplo:
+      if (e.response?.statusCode == 401) {
+        // Usuario no autenticado
+      }
+      // Ante cualquier error de red o servidor, retornamos false
+      return false;
+    } catch (_) {
+      // Errores inesperados también retornan false
+      return false;
     }
   }
 
