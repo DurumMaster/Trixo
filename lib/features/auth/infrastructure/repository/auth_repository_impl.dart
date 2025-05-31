@@ -45,4 +45,14 @@ class AuthRepositoryImpl extends AuthRepository {
   Future<bool> updateUserPreferences({required String userId, required List<String> preferences}) {
     return datasource.updateUserPreferences(userId: userId, preferences: preferences);
   }
+
+  @override
+  Future<List<String>> getUserPreferences({required String userId}) {
+    return datasource.getUserPreferences(userId: userId);
+  }
+
+  @override
+  Future<void> logOut() {
+    return datasource.logOut();
+  }
 }

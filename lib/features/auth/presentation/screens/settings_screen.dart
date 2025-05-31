@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:trixo_frontend/config/config.dart';
@@ -64,6 +65,7 @@ class SettingsScreen extends ConsumerWidget {
               if (uid == null) return;
 
               final postRepository = ref.read(profileRepositoryProvider);
+              final authRepository = ref.read(authRepositoryProvider);
               final user = await postRepository.getUser(uid);
 
               if (context.mounted) {
@@ -147,7 +149,31 @@ class SettingsScreen extends ConsumerWidget {
               'Cerrar sesión',
               style: TextStyle(color: Colors.red),
             ),
-            onTap: () {},
+            onTap: () async {
+              final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('¿Cerrar sesión?'),
+                content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+                actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Cancelar', style: TextStyle(color: textColor)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
+                ),
+                ],
+              ),
+              );
+              if (confirmed == true) {
+                ref.read(authRepositoryProvider).logOut();
+                Future.microtask(() {
+                  context.go("/login");
+                });
+              }
+            }
           ),
         ],
       ),

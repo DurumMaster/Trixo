@@ -20,7 +20,11 @@ abstract class AuthRepository {
     required List<String> preferences,
   });
 
+  Future<List<String>> getUserPreferences({required String userId});
+
   Future<bool> hasPreferences({required String userId});
 
   Future<User> getUserById({required String userId});
+
+  Future<void> logOut();
 }

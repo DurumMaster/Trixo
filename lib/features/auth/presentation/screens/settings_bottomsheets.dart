@@ -388,45 +388,45 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //TODO:_loadUserPreferences();
+      _loadUserPreferences();
     });
   }
 
 //TODO:
-  // Future<void> _loadUserPreferences() async {
-  //   final user = fa.FirebaseAuth.instance.currentUser;
-  //   if (user == null) {
-  //     return;
-  //   }
+  Future<void> _loadUserPreferences() async {
+    final user = fa.FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
 
-  //   // Obtenemos el repositorio y pedimos getUser para leer sus preferencias
-  //   final repo = ref.read(authRepositoryProvider);
-  //   try {
-  //     final userPrefs =
-  //         await repo.getUserPreferences(userId: user.uid) ?? <String>[];
+    // Obtenemos el repositorio y pedimos getUser para leer sus preferencias
+    final repo = ref.read(authRepositoryProvider);
+    try {
+      final userPrefs =
+          await repo.getUserPreferences(userId: user.uid);
 
-  //     // Limpiamos cualquier selección previa en el provider
-  //     final notifier = ref.read(preferencesProvider.notifier);
-  //     notifier.clearAll();
+      // Limpiamos cualquier selección previa en el provider
+      final notifier = ref.read(preferencesProvider.notifier);
+      notifier.clearAll();
 
-  //     // Recorremos las preferencias obtenidas y, si coinciden con las claves del map de constantes, las marcamos
-  //     final allValidKeys = AppConstants().allPreferences.keys.toSet();
-  //     for (final rawTag in userPrefs) {
-  //       if (allValidKeys.contains(rawTag)) {
-  //         notifier.togglePreference(rawTag);
-  //       }
-  //     }
-  //   } catch (e) {
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           content: Text('Error cargando preferencias'),
-  //           backgroundColor: Colors.redAccent,
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
+      // Recorremos las preferencias obtenidas y, si coinciden con las claves del map de constantes, las marcamos
+      final allValidKeys = AppConstants().allPreferences.keys.toSet();
+      for (final rawTag in userPrefs) {
+        if (allValidKeys.contains(rawTag)) {
+          notifier.togglePreference(rawTag);
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error cargando preferencias'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

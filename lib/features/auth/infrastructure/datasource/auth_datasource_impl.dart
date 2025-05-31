@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trixo_frontend/features/auth/domain/entity/user.dart' as trixo_user;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/auth/domain/datasource/auth_datasource.dart';
-import 'package:trixo_frontend/features/auth/domain/entity/user.dart';
 import 'package:trixo_frontend/features/auth/infrastructure/auth_infrastructure.dart';
 
 class AuthDatasourceImpl extends AuthDataSource {
@@ -80,6 +82,22 @@ class AuthDatasourceImpl extends AuthDataSource {
   }
 
   @override
+  Future<List<String>> getUserPreferences({required String userId}) async {
+    try {
+      final response = await dio.get('/users/$userId/preferencesList');
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to get user preferences');
+      }
+
+      return List<String>.from(response.data);
+    } on DioException catch (e) {
+      throw Exception(
+          'Error getting preferences: ${e.response?.data ?? e.message}');
+    }
+  }
+
+  @override
   Future<bool> hasPreferences({required String userId}) async {
     try {
       final response = await dio.get('/users/$userId/preferences');
@@ -101,7 +119,7 @@ class AuthDatasourceImpl extends AuthDataSource {
     required List<String> preferences,
   }) async {
     try {
-      final response = await dio.put<List<dynamic>>(
+      final response = await dio.put<String>(
         '/users/$userId/preferences',
         data: preferences,
         options: Options(
@@ -130,7 +148,14 @@ class AuthDatasourceImpl extends AuthDataSource {
   }
 
   @override
-  Future<User> getUserById({required String userId}) async {
+  Future<void> logOut() async {
+    final preferences = await SharedPreferences.getInstance();
+    preferences.remove("jwt_token");
+    await FirebaseAuth.instance.signOut();
+  }
+  
+  @override
+  Future<trixo_user.User> getUserById({required String userId}) async {
     try {
       final response = await dio.get('/users/$userId');
 
