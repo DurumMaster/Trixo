@@ -16,5 +16,12 @@ abstract class AuthDataSource {
 
   Future<bool> hasPreferences({required String userId});
 
+  Future<bool> updateUserPreferences({
+    required String userId,
+    required List<String> preferences,
+  });
+
+  
+
   Future<User> getUserById({required String userId});
 }

@@ -15,6 +15,11 @@ abstract class AuthRepository {
     required String userId,
   });
 
+  Future<bool> updateUserPreferences({
+    required String userId,
+    required List<String> preferences,
+  });
+
   Future<bool> hasPreferences({required String userId});
 
   Future<User> getUserById({required String userId});

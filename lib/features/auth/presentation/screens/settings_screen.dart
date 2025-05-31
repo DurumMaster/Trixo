@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/features/auth/presentation/screens/screens.dart';
@@ -83,7 +85,13 @@ class SettingsScreen extends ConsumerWidget {
                 style: TextStyle(color: textColor)),
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: 16, color: iconColor),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const UpdatePreferencesView(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
           SectionTitle('Soporte', color: sectionTitleColor),
@@ -94,21 +102,43 @@ class SettingsScreen extends ConsumerWidget {
                 style: TextStyle(color: textColor)),
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: 16, color: iconColor),
-            onTap: () {},
+            onTap: () {
+              _launchEmail(
+                context: context,
+                toEmail: 'soporte@trixo.es',
+                subject: 'Reporte de problema en Trixo',
+                body: 'Describe el problema que has encontrado:\n\n',
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.help_outline, color: iconColor),
             title: Text('FAQ', style: TextStyle(color: textColor)),
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: 16, color: iconColor),
-            onTap: () {},
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => FAQBottomSheet(isDarkMode: isDarkMode),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.chat_bubble_outline, color: iconColor),
             title: Text('Contactanos', style: TextStyle(color: textColor)),
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: 16, color: iconColor),
-            onTap: () {},
+            onTap: () {
+              _launchEmail(
+                context: context,
+                toEmail: 'contacto@trixo.es',
+                subject: 'Consulta desde la app Trixo',
+                body:
+                    'Hola equipo de Trixo,\n\nMe gustaría ponerme en contacto por lo siguiente:\n\n',
+              );
+            },
           ),
           const SizedBox(height: 16),
           SectionTitle('Acceso', color: sectionTitleColor),
@@ -122,6 +152,30 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _launchEmail({
+    required BuildContext context,
+    required String toEmail,
+    required String subject,
+    required String body,
+  }) async {
+    final String encodedSubject = Uri.encodeComponent(subject);
+    final String encodedBody = Uri.encodeComponent(body);
+
+    final Uri emailLaunchUri = Uri.parse(
+      'mailto:$toEmail?subject=$encodedSubject&body=$encodedBody',
+    );
+
+    if (await canLaunchUrl(emailLaunchUri)) {
+      await launchUrl(emailLaunchUri, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir el correo.')),
+        );
+      }
+    }
   }
 }
 

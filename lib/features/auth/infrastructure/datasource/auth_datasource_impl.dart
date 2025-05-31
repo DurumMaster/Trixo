@@ -26,7 +26,6 @@ class AuthDatasourceImpl extends AuthDataSource {
     required String email,
     required String avatar_img,
     required DateTime registration_date,
-    
   }) async {
     try {
       final response = await dio.post(
@@ -91,14 +90,48 @@ class AuthDatasourceImpl extends AuthDataSource {
 
       return response.data == true;
     } on DioException catch (e) {
-      throw Exception('Error getting preferences: ${e.response?.data ?? e.message}');
+      throw Exception(
+          'Error getting preferences: ${e.response?.data ?? e.message}');
     }
   }
 
+@override
+  Future<bool> updateUserPreferences({
+    required String userId,
+    required List<String> preferences,
+  }) async {
+    try {
+      final response = await dio.put<List<dynamic>>(
+        '/users/$userId/preferences',
+        data: preferences,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        return false;
+      }
+      else if (e.response?.statusCode == 500) {
+        return false;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
 
   @override
   Future<User> getUserById({required String userId}) async {
-    try{
+    try {
       final response = await dio.get('/users/$userId');
 
       if (response.statusCode != 200) {
@@ -106,7 +139,6 @@ class AuthDatasourceImpl extends AuthDataSource {
       }
 
       return UserMapper.userJsonToEntity(response.data);
-
     } catch (e) {
       return UserMapper.userJsonToEntity({
         'id': "",
@@ -116,8 +148,5 @@ class AuthDatasourceImpl extends AuthDataSource {
         'registration_date': "",
       });
     }
-
-
   }
-
 }
