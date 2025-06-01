@@ -140,9 +140,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Positioned.fill(
             child: Container(
               color: Colors.black.withOpacity(0.3),
-              child: const Center(
+              child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? Colors.white : Colors.black,
+                  ),
                 ),
               ),
             ),

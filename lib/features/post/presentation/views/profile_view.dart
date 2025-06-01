@@ -79,7 +79,7 @@ class _ProfileViewState extends ConsumerState<ProfileView>
                   imageUrl,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => Icon(
-                    Icons.broken_image,
+                    Icons.refresh,
                     size: 50,
                     color: isLight ? Colors.black : Colors.white,
                   ),
@@ -372,7 +372,7 @@ class _ProfileViewState extends ConsumerState<ProfileView>
                   fit: BoxFit.cover,
                   loadingBuilder: (_, child, prog) =>
                       prog == null ? child : ColoredBox(color: loadingBoxColor),
-                  errorBuilder: (_, __, ___) => Icon(Icons.broken_image,
+                  errorBuilder: (_, __, ___) => Icon(Icons.refresh,
                       color: isLight ? Colors.black45 : Colors.white70),
                 ),
               ),

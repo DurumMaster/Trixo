@@ -26,23 +26,32 @@ class SearchView extends ConsumerWidget {
         title: Row(
           children: [
             Expanded(
-              child: TextField(
-                onChanged: (value) {
-                  ref.read(searchQueryProvider.notifier).state = value;
-                  ref.read(searchProvider.notifier).search(value);
-                },
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                decoration: InputDecoration(
-                  hintText: 'Buscar publicaciones...',
-                  hintStyle: TextStyle(
-                      color: isDark ? Colors.white54 : Colors.black54),
-                  prefixIcon: Icon(Icons.search,
-                      color: isDark ? Colors.white : Colors.black),
-                  filled: true,
-                  fillColor: isDark ? Colors.grey[900] : Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: SizedBox(
+                  child: TextField(
+                    onChanged: (value) {
+                      ref.read(searchQueryProvider.notifier).state = value;
+                      ref.read(searchProvider.notifier).search(value);
+                    },
+                    style:
+                        TextStyle(color: isDark ? Colors.white : Colors.black),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                      hintText: 'Buscar diseños...',
+                      hintStyle: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white54 : Colors.black54),
+                      prefixIcon: Icon(Icons.search,
+                          color: isDark ? Colors.white : Colors.black),
+                      filled: true,
+                      fillColor: isDark ? Colors.grey[900] : Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -51,7 +60,9 @@ class SearchView extends ConsumerWidget {
               icon:
                   Icon(Icons.tag, color: isDark ? Colors.white : Colors.black),
               onPressed: () async {
-                final selectedTags = await Navigator.of(context, rootNavigator: true).push<List<String>>(
+                final selectedTags =
+                    await Navigator.of(context, rootNavigator: true)
+                        .push<List<String>>(
                   MaterialPageRoute(
                     builder: (_) => CreatePostSelectTagsView(
                       availableTags: AppConstants().allPreferences,
@@ -80,7 +91,7 @@ class SearchView extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Tags seleccionados:',
+                        'Filtros seleccionados:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       TextButton.icon(
@@ -102,8 +113,11 @@ class SearchView extends ConsumerWidget {
                             label: Text(tag),
                             deleteIcon: const Icon(Icons.close),
                             onDeleted: () {
-                              final updatedTags = [...searchState.tags]..remove(tag);
-                              ref.read(searchProvider.notifier).searchByTags(updatedTags);
+                              final updatedTags = [...searchState.tags]
+                                ..remove(tag);
+                              ref
+                                  .read(searchProvider.notifier)
+                                  .searchByTags(updatedTags);
                             },
                           ),
                         );
@@ -113,38 +127,41 @@ class SearchView extends ConsumerWidget {
                   const SizedBox(height: 12),
                 ],
               ),
-            // Mostrar mensaje si no hay publicaciones
-            if (searchState.posts.isEmpty && !searchState.isLoading)
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    'No se encontraron publicaciones.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+            if (searchState.posts.isEmpty) ...[
+              if (searchState.isLoading)
+                Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                )
+              else
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'No se han encontrado diseños',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
                   ),
                 ),
-              )
-            else
+            ] else
               Expanded(
                 child: MasonryGridView.count(
                   controller: searchState.scrollController,
                   crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 6,
                   itemCount: searchState.posts.length + 1,
                   itemBuilder: (context, index) {
                     if (index == searchState.posts.length) {
                       if (searchState.isLoading) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      } else if (!searchState.hasMore) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(
-                            child: Icon(Icons.check_circle_outline, color: Colors.grey),
+                            child: CircularProgressIndicator(
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
                           ),
                         );
                       } else {
@@ -153,31 +170,75 @@ class SearchView extends ConsumerWidget {
                     }
 
                     final post = searchState.posts[index];
-                    final imageUrl = post.images.isNotEmpty ? post.images.first : null;
+                    final imageUrl =
+                        post.images.isNotEmpty ? post.images.first : null;
 
                     if (imageUrl == null) {
                       return const SizedBox();
                     }
 
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context, rootNavigator: true).push(
-                          MaterialPageRoute(
-                            builder: (_) => PostDetailScreen(
-                              initialIndex: index,
-                              posts: searchState.posts,
-                              userId: post.user!.id,
-                            ),
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.9, end: 1.0),
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOut,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: (value - 0.9) * 10,
+                          child: Transform.scale(
+                            scale: value,
+                            child: child,
                           ),
                         );
                       },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.broken_image, size: 80),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (_) => PostDetailScreen(
+                                initialIndex: index,
+                                posts: searchState.posts,
+                                userId: post.user!.id,
+                              ),
+                            ),
+                          );
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: AspectRatio(
+                              aspectRatio: 4 / 5,
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Center(
+                                        child: Icon(Icons.refresh, size: 40)),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -223,7 +284,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     });
   }
 
-    void _onPopInvoked(bool didPop, Object? result) {
+  void _onPopInvoked(bool didPop, Object? result) {
     if (didPop && _toggledPostIds.isNotEmpty) {
       final notifier = ref.read(searchNotiProvider(widget.userId).notifier);
       for (var postId in _toggledPostIds) {
@@ -246,7 +307,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
           onPressed: () async {
             final didPop = await Navigator.of(context).maybePop();
             _onPopInvoked(didPop, null);
-        },
+          },
         ),
       ),
       body: ScrollablePositionedList.builder(
@@ -254,9 +315,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         itemCount: posts.length,
         itemBuilder: (context, i) {
           final post = posts[i];
-          final isLikedLocally = _toggledPostIds.contains(post.id)
-              ? !post.isLiked
-              : post.isLiked;
+          final isLikedLocally =
+              _toggledPostIds.contains(post.id) ? !post.isLiked : post.isLiked;
 
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -270,7 +330,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                 });
               },
               onShare: () {
-                  ref.read(postProvider.notifier).sharePost(post.images);
+                ref.read(postProvider.notifier).sharePost(post.images);
               },
             ),
           );
@@ -279,4 +339,3 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     );
   }
 }
-

@@ -35,7 +35,7 @@ class SearchState {
     bool? isLoading,
     bool? hasMore,
     bool? hasError,
-    List<String>? tags, // ← AÑADIR ESTO
+    List<String>? tags,
   }) {
     return SearchState(
       allPosts: allPosts ?? this.allPosts,
@@ -44,7 +44,7 @@ class SearchState {
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       hasError: hasError ?? this.hasError,
-      tags: tags ?? this.tags, // ← AÑADIR ESTO
+      tags: tags ?? this.tags,
       scrollController: scrollController,
     );
   }
@@ -60,12 +60,10 @@ final searchRepositoryProvider = Provider<PostRepository>((ref) {
   }));
 });
 
-  final searchNotiProvider =
+final searchNotiProvider =
     StateNotifierProvider.family<SearchNotifier, SearchState, String>(
-  (ref, userId) =>
-      SearchNotifier(ref.watch(searchRepositoryProvider), ref),
+  (ref, userId) => SearchNotifier(ref.watch(searchRepositoryProvider), ref),
 );
-
 
 class SearchNotifier extends StateNotifier<SearchState> {
   final PostRepository repository;
@@ -84,28 +82,32 @@ class SearchNotifier extends StateNotifier<SearchState> {
             state.scrollController.position.maxScrollExtent - 200 &&
         !state.isLoading &&
         state.hasMore) {
-      loadMore(); 
+      loadMore();
     }
   }
 
   void search(String query) {
     final cleanedQuery = query.trim().toLowerCase();
-    final cleanedSelectedTags = state.tags.map((tag) => cleanTag(tag).toLowerCase()).toList();
+    final cleanedSelectedTags =
+        state.tags.map((tag) => cleanTag(tag).toLowerCase()).toList();
 
     List<Post> filteredPosts;
 
     if (cleanedSelectedTags.isNotEmpty && cleanedQuery.isNotEmpty) {
       // Filtrar por tags Y query
       filteredPosts = state.allPosts.where((post) {
-        final cleanedPostTags = post.tags.map((tag) => cleanTag(tag).toLowerCase()).toList();
-        final matchesTags = cleanedSelectedTags.any((tag) => cleanedPostTags.contains(tag));
+        final cleanedPostTags =
+            post.tags.map((tag) => cleanTag(tag).toLowerCase()).toList();
+        final matchesTags =
+            cleanedSelectedTags.any((tag) => cleanedPostTags.contains(tag));
         final matchesQuery = post.caption.toLowerCase().contains(cleanedQuery);
         return matchesTags && matchesQuery;
       }).toList();
     } else if (cleanedSelectedTags.isNotEmpty) {
       // Filtrar solo por tags
       filteredPosts = state.allPosts.where((post) {
-        final cleanedPostTags = post.tags.map((tag) => cleanTag(tag).toLowerCase()).toList();
+        final cleanedPostTags =
+            post.tags.map((tag) => cleanTag(tag).toLowerCase()).toList();
         return cleanedSelectedTags.any((tag) => cleanedPostTags.contains(tag));
       }).toList();
     } else if (cleanedQuery.isNotEmpty) {
@@ -120,7 +122,6 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
     state = state.copyWith(posts: filteredPosts);
   }
-
 
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) return;
