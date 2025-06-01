@@ -392,32 +392,36 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
     });
   }
 
-//TODO:
   Future<void> _loadUserPreferences() async {
     final user = fa.FirebaseAuth.instance.currentUser;
     if (user == null) {
       return;
     }
 
-    // Obtenemos el repositorio y pedimos getUser para leer sus preferencias
     final repo = ref.read(authRepositoryProvider);
     try {
-      final userPrefs =
-          await repo.getUserPreferences(userId: user.uid);
+      final userPrefs = await repo.getUserPreferences(userId: user.uid);
 
-      // Limpiamos cualquier selección previa en el provider
       final notifier = ref.read(preferencesProvider.notifier);
       notifier.clearAll();
 
-      // Recorremos las preferencias obtenidas y, si coinciden con las claves del map de constantes, las marcamos
       final allValidKeys = AppConstants().allPreferences.keys.toSet();
       for (final rawTag in userPrefs) {
-        if (allValidKeys.contains(rawTag)) {
-          notifier.togglePreference(rawTag);
+        final matchKey = allValidKeys.firstWhere(
+          (fullKey) {
+            final parts = fullKey.split(' ');
+            final textWithoutEmoji = parts.sublist(1).join(' ');
+            return textWithoutEmoji == rawTag;
+          },
+          orElse: () => '',
+        );
+
+        if (matchKey.isNotEmpty) {
+          notifier.togglePreference(matchKey);
         }
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error cargando preferencias'),
@@ -446,7 +450,11 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: BackButton(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
+        ),
         title: Text(
           'Actualizar preferencias',
           style: TextStyle(
@@ -564,19 +572,7 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
                     final isAtMax = provider.hasReachedMax;
                     return GestureDetector(
                       onTap: () {
-                        if (isAtMax && !provider.isSelected(key)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Solo puedes seleccionar hasta 10 preferencias',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                          );
-                        } else {
+                        if (!isAtMax && provider.isSelected(key)) {
                           notifier.togglePreference(key);
                         }
                       },

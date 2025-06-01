@@ -65,7 +65,6 @@ class SettingsScreen extends ConsumerWidget {
               if (uid == null) return;
 
               final postRepository = ref.read(profileRepositoryProvider);
-              final authRepository = ref.read(authRepositoryProvider);
               final user = await postRepository.getUser(uid);
 
               if (context.mounted) {
@@ -145,36 +144,40 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           SectionTitle('Acceso', color: sectionTitleColor),
           ListTile(
-            title: const Text(
-              'Cerrar sesión',
-              style: TextStyle(color: Colors.red),
-            ),
-            onTap: () async {
-              final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('¿Cerrar sesión?'),
-                content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-                actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('Cancelar', style: TextStyle(color: textColor)),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
-                ),
-                ],
+              title: const Text(
+                'Cerrar sesión',
+                style: TextStyle(color: Colors.red),
               ),
-              );
-              if (confirmed == true) {
-                ref.read(authRepositoryProvider).logOut();
-                Future.microtask(() {
-                  context.go("/login");
-                });
-              }
-            }
-          ),
+              onTap: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('¿Cerrar sesión?'),
+                    content: const Text(
+                        '¿Estás seguro de que quieres cerrar sesión?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Cancelar',
+                            style: TextStyle(color: textColor)),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Cerrar sesión',
+                            style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  ref.read(authRepositoryProvider).logOut();
+                  Future.microtask(() {
+                    if (context.mounted) {
+                      context.go("/login");
+                    }
+                  });
+                }
+              }),
         ],
       ),
     );
