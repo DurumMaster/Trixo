@@ -39,7 +39,7 @@ class _CustomBottomNavigationState extends ConsumerState<CustomBottomNavigation>
         context.go('/image-picker');
         break;
       case 3:
-        context.go('/home');
+        context.go('/shop');
         break;
       case 4:
         final userId = ref.read(firebaseAuthProvider).currentUser?.uid;

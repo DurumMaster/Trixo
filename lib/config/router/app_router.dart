@@ -7,12 +7,12 @@ import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/post/presentation/views/search_view.dart';
 import 'package:trixo_frontend/features/shared/screens/screens.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
+import 'package:trixo_frontend/features/shop/presentation/views/shop_views.dart';
 
 final goRouterProvider = Provider((ref) {
   final goRouterNotifier = ref.watch(goRouterNotifierProvider);
 
   return GoRouter(
-    //!TODO: TIENE QUE ACABAR SIENDO /SPLASH o /LOGIN
     initialLocation: '/login',
     refreshListenable: goRouterNotifier,
     routes: [
@@ -85,8 +85,12 @@ final goRouterProvider = Provider((ref) {
                     },
                   );
                 },
-              )
-              //TODO: Poner resto views del navbar
+              ),
+              //* Shop View
+              GoRoute(
+                path: '/shop',
+                builder: (context, state) => const ShopView(),
+              ),
             ])
           ]),
       //* Create post section
