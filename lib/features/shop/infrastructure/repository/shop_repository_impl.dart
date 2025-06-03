@@ -5,5 +5,8 @@ class ShopRepositoryImpl extends ShopRepository {
 
   ShopRepositoryImpl(this.datasource);
 
- 
+  @override
+  Future<List<Product>> getActiveProducts() {
+    return datasource.getActiveProducts();
+  }
 }
