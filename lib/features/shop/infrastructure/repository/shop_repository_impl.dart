@@ -9,4 +9,14 @@ class ShopRepositoryImpl extends ShopRepository {
   Future<List<Product>> getActiveProducts() {
     return datasource.getActiveProducts();
   }
+
+  @override
+  Future<List<Review>> getReviews(int productId) {
+    return datasource.getReviews(productId);
+  }
+
+  @override
+  Future<void> sendReview(int productId, Review review) {
+    return datasource.sendReview(productId, review);
+  }
 }

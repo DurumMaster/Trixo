@@ -99,7 +99,7 @@ class PostDatasourceImpl extends PostDatasource {
   @override
   Future<List<Comment>> getComments(String postId) async {
     try {
-      final response = await dio.get('/api/comments/$postId');
+      final response = await dio.get('/comments/$postId');
 
       final List<dynamic> data = response.data;
 

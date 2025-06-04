@@ -75,7 +75,10 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
             const SizedBox(height: 12),
             Expanded(
               child: state.isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              isDark ? Colors.white : Colors.black)))
                   : state.comments.isEmpty
                       ? Center(
                           child: Text(
@@ -104,6 +107,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                             );
                           }),
             ),
+            const SizedBox(height: 12),
             const Divider(height: 1),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -220,9 +224,15 @@ class _CommentItem extends StatelessWidget {
 class _LoadingCommentItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
-      child: CircularProgressIndicator(strokeWidth: 2),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? Colors.white : Colors.black;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        valueColor: AlwaysStoppedAnimation<Color>(color),
+      ),
     );
   }
 }

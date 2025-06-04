@@ -1,10 +1,12 @@
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/shop/domain/shop_domain.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_providers.dart';
+import 'package:trixo_frontend/features/shop/presentation/views/shop_views.dart';
 
 class CustomPagePhysics extends ScrollPhysics {
   const CustomPagePhysics({super.parent});
@@ -859,7 +861,21 @@ class RatingReviewsSection extends StatelessWidget {
           const SizedBox(width: 12),
           GestureDetector(
             onTap: () {
-              Navigator.pushNamed(context, '/reviews');
+              final currentUser = FirebaseAuth.instance.currentUser;
+              if (currentUser == null) {
+                return;
+              }
+
+              final uid = currentUser.uid;
+
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => ReviewBottomSheet(
+                  productId: product.id,
+                  userId: uid,
+                ),
+              );
             },
             child: Text(
               'Ver todas las valoraciones',
