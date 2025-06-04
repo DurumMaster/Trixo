@@ -65,6 +65,7 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
     );
 
     return TextFormField(
+      onTap: widget.onTap,
       onChanged: widget.onChanged,
       onFieldSubmitted: widget.onFieldSubmitted,
       obscureText: _obscureText,

@@ -28,7 +28,7 @@ final goRouterProvider = Provider((ref) {
       ),
       GoRoute(
         path: '/signin',
-        builder: (context, state) => const SignInScreen(),
+        builder: (context, state) => SignInScreen(),
       ),
       GoRoute(
         path: '/reset_password',

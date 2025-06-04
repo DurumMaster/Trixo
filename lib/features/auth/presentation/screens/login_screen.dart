@@ -17,38 +17,14 @@ class LoginScreen extends ConsumerWidget {
 
   final GlobalKey<AuthAnimationWidgetState> animationKey = GlobalKey();
 
-  void switchAnimations(bool isFocus, String animation) async {
-    final current = animationKey.currentState?.currentAnimation;
-    log("Current animation: $current", name: "LoginScreen");
-    if (isFocus) {
-      if (animation == "email") {
-        if (current == "SwitchDefault") {
-          await animationKey.currentState
-              ?.switchAnimation("SwitchDefault", 500);
-        } else {
-          if (current != "idle") {
-            await animationKey.currentState?.switchAnimation("idle", 250);
-          }
-        }
-      } else if (animation == "password") {
-        if (current != "SwitchHat") {
-          await animationKey.currentState?.switchAnimation("SwitchHat", 500);
-        }
-      }
+  void switchAnimations(bool isFocus, String animation) {
+    final animState = animationKey.currentState;
+    if (animState == null) return;
+
+    if (animation == "password" && isFocus) {
+      animState.playHat();
     } else {
-      if (animation == "fail") {
-        if (current != "fail") {
-          await animationKey.currentState?.switchAnimation("fail", 500);
-        }
-      } else if (animation == "success") {
-        if (current != "success") {
-          await animationKey.currentState?.switchAnimation("success", 500);
-        }
-      } else {
-        if (current != "idle") {
-          await animationKey.currentState?.switchAnimation("idle", 500);
-        }
-      }
+      animState.removeHat();
     }
   }
 
@@ -244,6 +220,8 @@ class LoginScreen extends ConsumerWidget {
         );
       }
       return;
+    } else {
+      switchAnimations(false, "success");
     }
 
     final hasPreferences = await ref.read(hasPreferencesProvider.future);

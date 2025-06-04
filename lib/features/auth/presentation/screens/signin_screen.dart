@@ -4,13 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/auth_providers.dart';
+import 'package:trixo_frontend/features/shared/widgets/auth_animation_widget.dart';
 
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/auth/presentation/providers/providers.dart';
 import 'package:trixo_frontend/config/config.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
-  const SignInScreen({super.key});
+  SignInScreen({super.key});
+
+  final GlobalKey<AuthAnimationWidgetState> animationKey = GlobalKey();
+
+  void switchAnimations(bool isFocus, String animation) {
+    final animState = animationKey.currentState;
+    if (animState == null) return;
+
+    if (animation == "password") {
+      animState.playHat();
+    } else {
+      animState.removeHat();
+    }
+  }
 
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
@@ -71,8 +85,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Column(
               children: [
-                const Icon(Icons.account_circle_rounded, size: 100),
-                const SizedBox(height: 50),
+                    AuthAnimationWidget(key: widget.animationKey),
+                    const SizedBox(height: 25),
                 Text('¡Crea tu cuenta en Trixo! 🎉',
                     style: textTheme.titleMedium),
                 const SizedBox(height: 50),
@@ -80,6 +94,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   label: 'Correo',
                   keyboardType: TextInputType.emailAddress,
                   onChanged: notifier.onEmailChanged,
+                  onTap: () => widget.switchAnimations(true, "email"),
                   errorMessage: signUpForm.isFormPosted
                       ? signUpForm.email.errorMessage
                       : null,
@@ -89,6 +104,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   label: 'Nombre de usuario',
                   controller: usernameController,
                   onChanged: notifier.onUsernameChanged,
+                  onTap: () => widget.switchAnimations(true, "username"),
                   errorMessage: signUpForm.isFormPosted
                       ? signUpForm.username.errorMessage
                       : null,
@@ -99,6 +115,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   obscureText: true,
                   showPasswordToggle: true,
                   onChanged: notifier.onPasswordChanged,
+                  onTap: () => widget.switchAnimations(true, "password"),
                   errorMessage: signUpForm.isFormPosted
                       ? signUpForm.password.errorMessage
                       : null,
@@ -109,6 +126,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   obscureText: true,
                   showPasswordToggle: true,
                   onChanged: notifier.onConfirmPasswordChanged,
+                  onTap: () => widget.switchAnimations(true, "password"),
                   errorMessage: signUpForm.isFormPosted
                       ? signUpForm.confirmPassword.errorMessage
                       : null,
