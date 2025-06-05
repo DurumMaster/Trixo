@@ -31,4 +31,14 @@ class ShopRepositoryImpl extends ShopRepository {
   Future<void> insertCardToCustomer(PaymentDto paymentDto, String paymentMethodId) {
     return datasource.insertCardToCustomer(paymentDto, paymentMethodId);
   }
+
+  @override
+  Future<Customer> insertCustomer(Customer customer) {
+    return datasource.insertCustomer(customer);
+  }
+
+  @override
+  Future<bool> hasSavedPaymentMethod(String customerId) {
+    return datasource.hasSavedPaymentMethod(customerId);
+  }
 }

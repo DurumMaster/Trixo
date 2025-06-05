@@ -7,7 +7,6 @@ import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/post/presentation/views/search_view.dart';
 import 'package:trixo_frontend/features/shared/screens/screens.dart';
 import 'package:trixo_frontend/features/post/presentation/views/post_views.dart';
-import 'package:trixo_frontend/features/shared/widgets/checkout_summary.dart';
 import 'package:trixo_frontend/features/shop/presentation/views/checkout_confirmation_view.dart';
 import 'package:trixo_frontend/features/shop/presentation/views/shop_views.dart';
 

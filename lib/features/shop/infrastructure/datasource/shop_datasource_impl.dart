@@ -80,7 +80,7 @@ class ShopDatasourceImpl extends ShopDatasource {
   @override
   Future<Customer> getCustomer(String email) async {
     try {
-      final response = await dio.get('/products/$email/customers/');
+      final response = await dio.get('/products/$email/customer');
       if (response.statusCode == 200) {
         return CustomerMapper.fromJson(response.data).toEntity();
       } else {
@@ -98,19 +98,49 @@ class ShopDatasourceImpl extends ShopDatasource {
   ) async {
     try {
       final response = await dio.post(
-        '/customers/$paymentMethodId/payments', // <- paymentMethodId en la ruta
-        data: paymentDto, // <- PaymentDto como JSON en el cuerpo
+        '/products/$paymentMethodId/payments', 
+        data: paymentDto.toJson(),
       );
 
       if (response.statusCode == 201) {
-        // Éxito
-        final clientSecret = response.data['clientSecret'];
-        print('Client Secret: $clientSecret');
+        return;
       } else {
         throw Exception('Error: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Fallo al crear PaymentIntent: $e');
+    }
+  }
+
+  @override
+  Future<Customer> insertCustomer(Customer customer) async {
+    try {
+      final response = await dio.post(
+        '/products/customer',
+        data: CustomerMapper.toJson(customer),
+      );
+
+      if (response.statusCode == 201) {
+        return CustomerMapper.fromJson(response.data).toEntity();
+      } else {
+        throw Exception('Error al crear cliente: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Fallo al insertar cliente: $e');
+    }
+  }
+
+  @override
+  Future<bool> hasSavedPaymentMethod(String customerId) async {
+    try {
+      final response = await dio.get('/products/$customerId/payment-method');
+      if (response.statusCode == 200) {
+        return response.data['hasSavedPaymentMethod'] as bool;
+      } else {
+        throw Exception('Error al verificar métodos de pago guardados: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Fallo al verificar métodos de pago guardados: $e');
     }
   }
 

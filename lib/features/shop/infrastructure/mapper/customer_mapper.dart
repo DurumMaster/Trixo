@@ -25,13 +25,13 @@ class CustomerMapper {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  static Map<String, dynamic> toJson(Customer c) {
     return {
-      'id': id,
-      'email': email,
-      'name': name,
-      'phone': phone,
-      'address': address,
+      'id': c.id,
+      'email': c.email,
+      'name': c.name,
+      'phone': c.phone,
+      'address': c.address,
     };
   }
 

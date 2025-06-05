@@ -3,6 +3,7 @@ class Customer {
   final String? email;
   final String? name;
   final String? phone;
+  final bool? gdprConsent;
   final Map<String, dynamic>? address;
 
   Customer({
@@ -10,6 +11,7 @@ class Customer {
     this.email,
     this.name,
     this.phone,
+    this.gdprConsent,
     this.address,
   });
 }

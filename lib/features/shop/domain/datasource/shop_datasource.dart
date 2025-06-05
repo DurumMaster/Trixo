@@ -8,4 +8,6 @@ abstract class ShopDatasource {
   Future<void> sendReview(int productId, Review review);
   Future<Customer> getCustomer(String email);
   Future<void> insertCardToCustomer(PaymentDto paymentDto, String paymentMethodId);
+  Future<Customer> insertCustomer(Customer customer);
+  Future<bool> hasSavedPaymentMethod(String customerId);
 }

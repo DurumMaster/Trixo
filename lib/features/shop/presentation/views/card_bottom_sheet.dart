@@ -37,6 +37,13 @@ class _CardBottomSheetState extends State<CardBottomSheet> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _localCardDetails?.complete == true ? Colors.black : Colors.grey.shade400,
+              foregroundColor: _localCardDetails?.complete == true ? Colors.white : Colors.grey.shade700,
+              side: _localCardDetails?.complete == true
+                  ? const BorderSide(color: Colors.white)
+                  : null,
+            ),
             onPressed: _localCardDetails?.complete == true
                 ? () {
                     Navigator.pop(context, _localCardDetails);

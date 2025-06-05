@@ -72,31 +72,19 @@ class ShopNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> addCardToCustomer(Customer customer, int amount) async {
+  Future<String> registerCustomer(Customer customer) async {
     try {
-      final billingDetails = BillingDetails(
-        email: '${customer.email}',
-        name: '${customer.name}',
-        phone: '${customer.phone}',
-        address: Address(
-          city: '${customer.address?['city'] ?? 'Desconocido'}',
-          country: '${customer.address?['country'] ?? 'Desconocido'}',
-          line1: '${customer.address?['line1'] ?? 'Desconocido'}',
-          line2: '${customer.address?['line2'] ?? 'Desconocido'}',
-          postalCode: '${customer.address?['postalCode'] ?? 'Desconocido'}',
-          state: '${customer.address?['state'] ?? 'Desconocido'}',
-        )
-      );
+      final newCustomer = await _repository.insertCustomer(customer);
+      debugPrint('Cliente registrado exitosamente: ${newCustomer.id}');
+      return newCustomer.id;
+    } catch (e) {
+      debugPrint('Error al registrar cliente: $e');
+      rethrow;
+    }
+  }
 
-      // 1. Crear Payment Method (tarjeta)
-      final paymentMethod = await Stripe.instance.createPaymentMethod(
-        params: PaymentMethodParams.card(
-          paymentMethodData: PaymentMethodData(
-            billingDetails: billingDetails,
-          ),
-        ),
-      );
-
+  Future<void> addCardToCustomer(Customer customer, int amount, PaymentMethod paymentMethod) async {
+    try {
       await _repository.insertCardToCustomer(
         PaymentDto(
           customerID: customer.id,
@@ -110,6 +98,16 @@ class ShopNotifier extends ChangeNotifier {
     } catch (e) {
       print('Error agregando tarjeta: $e');
       rethrow;
+    }
+  }
+
+    Future<bool> hasSavedPaymentMethod(String customerID) async {
+    try {
+      final hasPaymentMethods = await _repository.hasSavedPaymentMethod(customerID);
+      return hasPaymentMethods;
+    } catch (e) {
+      debugPrint('Error al verificar métodos de pago: $e');
+      return false;
     }
   }
 }
