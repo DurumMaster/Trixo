@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/shop/domain/shop_domain.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_providers.dart';
@@ -758,13 +759,16 @@ class _UserCreatorInfo extends ConsumerWidget {
 /// ------------------------------------------------
 
 class AddToCartSection extends ConsumerWidget {
-  const AddToCartSection({super.key});
+  final Product? product;
+
+  const AddToCartSection({
+    super.key,
+    required this.product,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(shopProvider);
     final selectedSize = ref.watch(shopProvider.select((s) => s.selectedSize));
-    final product = notifier.product;
     final isOutOfStock = product?.stock == 0;
 
     return Padding(
@@ -794,11 +798,12 @@ class AddToCartSection extends ConsumerWidget {
 
                   ref.read(cartProvider.notifier).addToCart(
                         CartItem(
-                          id: product.id,
-                          name: product.nombre,
-                          price: product.precio,
-                          imageUrl: product.imageUrls.first,
+                          id: product!.id,
+                          name: product!.nombre,
+                          price: product!.precio,
+                          imageUrl: product!.imageUrls.first,
                           size: selectedSize,
+                          quantity: 1,
                         ),
                       );
                 },
@@ -1030,7 +1035,7 @@ class ShopViewState extends ConsumerState<ShopView> {
     final List<Product> allProducts = storeNotifier.products;
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
-
+    final int totalItems = ref.watch(cartTotalItemsProvider);
     final Product? producto =
         allProducts.isNotEmpty && _selectedIndex < allProducts.length
             ? allProducts[_selectedIndex]
@@ -1038,20 +1043,63 @@ class ShopViewState extends ConsumerState<ShopView> {
 
     return Scaffold(
       appBar: AppBar(
+        title: Text('Trixo',
+            style: GoogleFonts.rubik(
+              textStyle: TextStyle(
+                fontWeight: FontWeight.w800, // Grosor marcado pero sin pasarse
+                fontSize: 26,
+                letterSpacing: 1.5, // Sutil para ganar aire
+                color: Theme.of(context).colorScheme.secondary,
+                shadows: [
+                  Shadow(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withOpacity(0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+            )),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.shopping_cart_outlined,
-              color: isDark ? Colors.white : Colors.black87,
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () {
+                // Navegar a la pantalla de carrito
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CartView()),
+                );
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(Icons.shopping_cart, size: 28),
+                  if (totalItems > 0)
+                    Positioned(
+                      right: 0,
+                      top: 6,
+                      child: CircleAvatar(
+                        radius: 8,
+                        backgroundColor: Colors.red,
+                        child: Text(
+                          '$totalItems',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CartView()),
-              );
-            },
           ),
         ],
       ),
@@ -1106,7 +1154,7 @@ class ShopViewState extends ConsumerState<ShopView> {
                     const SizedBox.shrink(),
 
                   // ══ 7.4) Add to Cart ══
-                  const AddToCartSection(),
+                  AddToCartSection(product: producto),
 
                   // ══ 7.5) Rating + Reviews ══
                   if (producto != null)

@@ -5,7 +5,9 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   CartNotifier() : super([]);
 
   void addToCart(CartItem newItem) {
-    final index = state.indexWhere((item) => item.id == newItem.id && item.size == newItem.size);
+    final index = state.indexWhere(
+        (item) => item.id == newItem.id && item.size == newItem.size);
+
     if (index != -1) {
       state = [
         for (int i = 0; i < state.length; i++)
@@ -27,7 +29,8 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   }
 
   void removeFromCart(int id, String size) {
-    state = state.where((item) => !(item.id == id && item.size == size)).toList();
+    state =
+        state.where((item) => !(item.id == id && item.size == size)).toList();
   }
 
   void increaseQuantity(int id, String size) {
@@ -65,6 +68,15 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   double get totalPrice {
     return state.fold(0.0, (sum, item) => sum + item.price * item.quantity);
   }
+
 }
 
-final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>((ref) => CartNotifier());
+final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>(
+    (ref) => CartNotifier());
+
+
+final cartTotalItemsProvider = Provider<int>((ref) {
+  final cartList = ref.watch(cartProvider);
+  // Sumamos la propiedad `quantity` de cada elemento
+  return cartList.fold<int>(0, (sum, item) => sum + item.quantity);
+});
