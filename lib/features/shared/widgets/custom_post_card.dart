@@ -60,6 +60,8 @@ class _PostCardState extends ConsumerState<PostCard>
   late final AnimationController _overlayPopupController;
   late final Animation<double> _overlayPopupAnimation;
 
+  late String? _userId;
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +79,17 @@ class _PostCardState extends ConsumerState<PostCard>
         curve: Curves.easeOutBack,
       ),
     );
+
+    _userId = widget.post.user?.id;
+    if (_userId != null) {
+      // Precargar el usuario al iniciar el widget
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // Verificar si el widget está montado
+          ref.read(cachedUserProvider(_userId!).future);
+        }
+      });
+    }
   }
 
   void _initializeControllers() {
@@ -268,7 +281,7 @@ class _PostCardState extends ConsumerState<PostCard>
                     imageUrl: imageUrl,
                     fit: BoxFit.contain,
                     errorWidget: (_, __, ___) => const Icon(
-                      Icons.broken_image,
+                      Icons.refresh,
                       size: 50,
                       color: Colors.white,
                     ),
@@ -624,35 +637,73 @@ class _PostCardState extends ConsumerState<PostCard>
   }
 
   Widget _buildUserHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              if (widget.post.user?.id != null) {
-                context.push('/user/${widget.post.user!.id}');
-              }
-            },
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage:
-                      NetworkImage(widget.post.user?.avatarImg ?? ""),
+    final userId = widget.post.user?.id;
+
+    return Consumer(
+      builder: (context, ref, child) {
+        // Obtener el usuario usando el caché
+        final userAsyncValue = userId != null
+            ? ref.watch(cachedUserProviderPostCard(userId))
+            : const AsyncValue.data(null);
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if (userId != null) {
+                    context.push('/user/$userId');
+                  }
+                },
+                child: userAsyncValue.when(
+                  data: (user) => Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(user?.avatarImg ?? ""),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        user?.username ?? "Anónimo",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  loading: () => Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Cargando...",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  error: (error, stack) => Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 20,
+                        child: Icon(Icons.error_outline),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Error",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  widget.post.user?.username ?? "Anónimo",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
+              ),
+              const Expanded(child: SizedBox()),
+              _buildActionButtons(),
+            ],
           ),
-          const Expanded(child: SizedBox()),
-          _buildActionButtons(),
-        ],
-      ),
+        );
+      },
     );
   }
 

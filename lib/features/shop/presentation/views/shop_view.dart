@@ -1046,9 +1046,9 @@ class ShopViewState extends ConsumerState<ShopView> {
         title: Text('Trixo',
             style: GoogleFonts.rubik(
               textStyle: TextStyle(
-                fontWeight: FontWeight.w800, // Grosor marcado pero sin pasarse
+                fontWeight: FontWeight.w800,
                 fontSize: 26,
-                letterSpacing: 1.5, // Sutil para ganar aire
+                letterSpacing: 1.5,
                 color: Theme.of(context).colorScheme.secondary,
                 shadows: [
                   Shadow(

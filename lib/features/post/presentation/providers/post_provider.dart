@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:trixo_frontend/features/auth/domain/auth_domain.dart';
 import 'package:trixo_frontend/features/post/domain/post_domain.dart';
 import 'package:trixo_frontend/features/post/presentation/providers/post_providers.dart';
 
@@ -98,10 +99,12 @@ class SectionState {
 class PostState {
   final Map<HomeSection, SectionState> sections;
   final HomeSection currentSection;
+  final User? loadedUser;
 
   const PostState({
     required this.sections,
     required this.currentSection,
+    this.loadedUser,
   });
 
   factory PostState.initial() {
@@ -120,10 +123,12 @@ class PostState {
   PostState copyWith({
     Map<HomeSection, SectionState>? sections,
     HomeSection? currentSection,
+    User? loadedUser,
   }) {
     return PostState(
       sections: sections ?? this.sections,
       currentSection: currentSection ?? this.currentSection,
+      loadedUser: loadedUser ?? this.loadedUser,
     );
   }
 }
@@ -410,3 +415,24 @@ class PostNotifier extends StateNotifier<PostState> {
     super.dispose();
   }
 }
+
+// Cache de usuarios (almacena UserModel por ID)
+final _userCacheProviderPostCard = Provider<Map<String, User>>((ref) => {});
+
+// Provider que obtiene usuarios usando el caché
+final cachedUserProviderPostCard = FutureProvider.family<User?, String>(
+  (ref, userId) async {
+    final cache = ref.read(_userCacheProviderPostCard);
+    // Devolver usuario del caché si existe
+    if (cache.containsKey(userId)) return cache[userId]!;
+
+    // Obtener usuario del repositorio si no está en caché
+    final user = await ref.read(postRepositoryProvider).getUser(userId);
+
+    // Guardar en caché si se obtuvo el usuario
+
+    cache[userId] = user;
+
+    return user;
+  },
+);
