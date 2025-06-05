@@ -792,7 +792,15 @@ class AddToCartSection extends ConsumerWidget {
                     return;
                   }
 
-                  notifier.addToCart();
+                  ref.read(cartProvider.notifier).addToCart(
+                        CartItem(
+                          id: product.id,
+                          name: product.nombre,
+                          price: product.precio,
+                          imageUrl: product.imageUrls.first,
+                          size: selectedSize,
+                        ),
+                      );
                 },
           leadingIcon: isOutOfStock ? Icons.lock : null,
           borderRadius: 12.0,
@@ -1040,7 +1048,9 @@ class ShopViewState extends ConsumerState<ShopView> {
               color: isDark ? Colors.white : Colors.black87,
             ),
             onPressed: () {
-              context.go('/checkout_confirmation');
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CartView()),
+              );
             },
           ),
         ],

@@ -63,15 +63,6 @@ class ShopNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addToCart() {
-    if (_product == null) return;
-
-    debugPrint(
-      'Añadiendo al carrito: productoId=${_product!.id}, '
-      'nombre=${_product!.nombre}, talla=$_selectedSize',
-    );
-  }
-
   Future<Customer?> getCustomer(String userId) async {
     try {
       return await _repository.getCustomer(userId);
