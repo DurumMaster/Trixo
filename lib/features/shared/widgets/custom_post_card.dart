@@ -679,7 +679,7 @@ class _PostCardState extends ConsumerState<PostCard>
                       const SizedBox(width: 12),
                       Text(
                         "Cargando...",
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -805,9 +805,10 @@ class _PostCardState extends ConsumerState<PostCard>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              widget.post.commentsCount == 0
-                  ? 'Ver todos los comentarios'
-                  : 'Ver los ${widget.post.commentsCount} comentarios',
+              "Ver todos los comentarios",
+              // widget.post.commentsCount == 0
+              //     ? 'Ver todos los comentarios'
+              //     : 'Ver los ${widget.post.commentsCount} comentarios',
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.textSecondaryDark
