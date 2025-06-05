@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 
 import 'package:trixo_frontend/config/config.dart';
+import 'package:trixo_frontend/features/shop/domain/dto/payment_dto.dart';
+import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
 import 'package:trixo_frontend/features/shop/domain/shop_domain.dart';
+import 'package:trixo_frontend/features/shop/infrastructure/mapper/customer_mapper.dart';
 import 'package:trixo_frontend/features/shop/infrastructure/shop_infrastructure.dart';
 
 class ShopDatasourceImpl extends ShopDatasource {
@@ -74,4 +77,41 @@ class ShopDatasourceImpl extends ShopDatasource {
     }
   }
   
+  @override
+  Future<Customer> getCustomer(String email) async {
+    try {
+      final response = await dio.get('/products/$email/customers/');
+      if (response.statusCode == 200) {
+        return CustomerMapper.fromJson(response.data).toEntity();
+      } else {
+        throw Exception('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Fallo al obtener cliente: $e');
+    }
+  }
+
+  @override
+  Future<void> insertCardToCustomer(
+    PaymentDto paymentDto,
+    String paymentMethodId,
+  ) async {
+    try {
+      final response = await dio.post(
+        '/customers/$paymentMethodId/payments', // <- paymentMethodId en la ruta
+        data: paymentDto, // <- PaymentDto como JSON en el cuerpo
+      );
+
+      if (response.statusCode == 201) {
+        // Éxito
+        final clientSecret = response.data['clientSecret'];
+        print('Client Secret: $clientSecret');
+      } else {
+        throw Exception('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Fallo al crear PaymentIntent: $e');
+    }
+  }
+
 }

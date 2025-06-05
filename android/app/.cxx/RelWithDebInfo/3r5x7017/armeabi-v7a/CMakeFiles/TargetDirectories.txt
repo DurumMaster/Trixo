@@ -1,0 +1,2 @@
+D:/FP_DAM/TFC/Trixo/android/app/.cxx/RelWithDebInfo/3r5x7017/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/FP_DAM/TFC/Trixo/android/app/.cxx/RelWithDebInfo/3r5x7017/armeabi-v7a/CMakeFiles/rebuild_cache.dir

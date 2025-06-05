@@ -1,3 +1,5 @@
+import 'package:trixo_frontend/features/shop/domain/dto/payment_dto.dart';
+import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
 import 'package:trixo_frontend/features/shop/domain/shop_domain.dart';
 
 class ShopRepositoryImpl extends ShopRepository {
@@ -18,5 +20,15 @@ class ShopRepositoryImpl extends ShopRepository {
   @override
   Future<void> sendReview(int productId, Review review) {
     return datasource.sendReview(productId, review);
+  }
+
+  @override
+  Future<Customer> getCustomer(String email) {
+    return datasource.getCustomer(email);
+  }
+
+  @override
+  Future<void> insertCardToCustomer(PaymentDto paymentDto, String paymentMethodId) {
+    return datasource.insertCardToCustomer(paymentDto, paymentMethodId);
   }
 }

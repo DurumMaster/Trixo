@@ -1040,7 +1040,7 @@ class ShopViewState extends ConsumerState<ShopView> {
               color: isDark ? Colors.white : Colors.black87,
             ),
             onPressed: () {
-              Navigator.pushNamed(context, '/cart');
+              context.go('/checkout_confirmation');
             },
           ),
         ],
