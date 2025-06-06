@@ -22,6 +22,7 @@ class CreatePostView extends ConsumerWidget {
     final onSurf = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         leading: BackButton(color: onSurf),
         title: Text(
@@ -39,156 +40,152 @@ class CreatePostView extends ConsumerWidget {
           child: LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 16),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Vista previa de la primera imagen
-                      if (images.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              File(images.first),
-                              width: double.infinity,
-                              height: 300,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-
-                      // Descripción minimalista
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: TextField(
-                          maxLines: null,
-                          maxLength: _maxChars,
-                          onChanged: notifier.setDescription,
-                          style: TextStyle(color: onSurf),
-                          cursorColor: onSurf,
-                          decoration: InputDecoration(
-                            hintText:
-                                'Cuéntale al mundo qué hace especial tu diseño. Una buena descripción ayuda a que más personas conecten con tu estilo.',
-                            hintStyle: TextStyle(
-                              color: onSurf.withOpacity(0.6),
-                              fontSize: 13,
-                            ),
-                            border: InputBorder.none,
-                            counterText:
-                                '${state.description.length}/$_maxChars',
-                            counterStyle:
-                                TextStyle(color: onSurf.withOpacity(0.6)),
-                          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Vista previa de la primera imagen
+                  if (images.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(images.first),
+                          width: double.infinity,
+                          height: 300,
+                          fit: BoxFit.cover,
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 20),
-
-                      // Sección de Tags
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Utiliza etiquetas para que más personas vean tu diseño',
-                                style: TextStyle(
-                                    color: onSurf, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              child: TextButton.icon(
-                                onPressed: () async {
-                                  final result =
-                                      await context.push<List<String>>(
-                                    '/select-tags',
-                                    extra: {
-                                      'initialTags': state.tags,
-                                    },
-                                  );
-                                  if (result != null) notifier.setTags(result);
-                                },
-                                icon: Icon(Icons.add, color: onSurf),
-                                label: Text(
-                                  'Etiquetas',
-                                  style: TextStyle(color: onSurf),
-                                ),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                              ),
-                            )
-                          ],
+                  // Descripción minimalista
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      maxLines: null,
+                      maxLength: _maxChars,
+                      onChanged: notifier.setDescription,
+                      style: TextStyle(color: onSurf),
+                      cursorColor: onSurf,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Cuéntale al mundo qué hace especial tu diseño. Una buena descripción ayuda a que más personas conecten con tu estilo.',
+                        hintStyle: TextStyle(
+                          color: onSurf.withOpacity(0.6),
+                          fontSize: 13,
                         ),
+                        border: InputBorder.none,
+                        counterText: '${state.description.length}/$_maxChars',
+                        counterStyle: TextStyle(color: onSurf.withOpacity(0.6)),
                       ),
-                      const SizedBox(height: 12),
-                      // Mostrar tags seleccionados (scroll horizontal sobre dos filas)
-                      if (state.tags.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: SizedBox(
-                            height: 60,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: state.tags.length,
-                              itemBuilder: (_, i) {
-                                return CustomTagButton(
-                                  text: state.tags[i],
-                                  color: AppConstants()
-                                          .allPreferences[state.tags[i]] ??
-                                      Colors.grey,
-                                  selected: true,
-                                  onTap: () {
-                                    null;
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-
-                      const Spacer(),
-
-                      // Botón Share personalizado
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: MUILoadingButton(
-                          text: 'Publicar',
-                          loadingStateText: 'Publicando...',
-                          onPressed: state.isLoading
-                              ? null
-                              : () async {
-                                  final ok = await notifier.submit();
-                                  if (ok && context.mounted) {
-                                    context.go('/home');
-                                  }
-                                },
-                          borderRadius: 12,
-                          boxShadows: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 20),
+
+                  // Sección de Tags
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Utiliza etiquetas para que más personas vean tu diseño',
+                            style: TextStyle(
+                                color: onSurf, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          child: TextButton.icon(
+                            onPressed: () async {
+                              final result = await context.push<List<String>>(
+                                '/select-tags',
+                                extra: {
+                                  'initialTags': state.tags,
+                                },
+                              );
+                              if (result != null) notifier.setTags(result);
+                            },
+                            icon: Icon(Icons.add, color: onSurf),
+                            label: Text(
+                              'Etiquetas',
+                              style: TextStyle(color: onSurf),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Mostrar tags seleccionados (scroll horizontal sobre dos filas)
+                  if (state.tags.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SizedBox(
+                        height: 60,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: state.tags.length,
+                          itemBuilder: (_, i) {
+                            return CustomTagButton(
+                              text: state.tags[i],
+                              color: AppConstants()
+                                      .allPreferences[state.tags[i]] ??
+                                  Colors.grey,
+                              selected: true,
+                              onTap: () {
+                                null;
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(
+                    height: 100,
+                  ),
+
+                  // Botón Share personalizado
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: MUILoadingButton(
+                      text: 'Publicar',
+                      loadingStateText: 'Publicando...',
+                      onPressed: state.isLoading
+                          ? null
+                          : () async {
+                              final ok = await notifier.submit();
+                              if (ok && context.mounted) {
+                                ref
+                                    .read(imagePickerProvider.notifier)
+                                    .clearSelection();
+                                context.go('/home');
+                              }
+                            },
+                      borderRadius: 12,
+                      boxShadows: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

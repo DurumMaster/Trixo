@@ -128,7 +128,11 @@ class _ImagePickerViewState extends ConsumerState<ImagePickerView> {
       ),
       body: SafeArea(
         child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                ),
+              )
             : state.hasImages
                 ? _buildCarousel(context, state, notifier, isDark, iconColor)
                 : _buildPlaceholder(context, notifier, iconColor),

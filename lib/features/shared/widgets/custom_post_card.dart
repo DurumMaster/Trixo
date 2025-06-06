@@ -234,7 +234,7 @@ class _PostCardState extends ConsumerState<PostCard>
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: CachedNetworkImage(
                     imageUrl: widget.post.images[index],
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
                     width: double.infinity,
                     progressIndicatorBuilder: (_, __, ___) => Center(
                       child: CircularProgressIndicator(
