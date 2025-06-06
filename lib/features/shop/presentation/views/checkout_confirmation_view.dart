@@ -9,8 +9,10 @@ import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_provider.dart';
 import 'package:trixo_frontend/features/shop/presentation/views/address_bottom_sheet.dart';
 
-final billingDetailsProvider = StateProvider<stripe.BillingDetails?>((ref) => null);
-final cardDetailsProvider = StateProvider<stripe.CardFieldInputDetails?>((ref) => null);
+final billingDetailsProvider =
+    StateProvider<stripe.BillingDetails?>((ref) => null);
+final cardDetailsProvider =
+    StateProvider<stripe.CardFieldInputDetails?>((ref) => null);
 final saveCardConsentProvider = StateProvider<bool>((ref) => false);
 
 class CheckoutConfirmationView extends ConsumerStatefulWidget {
@@ -26,17 +28,18 @@ class CheckoutConfirmationView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<CheckoutConfirmationView> createState() => _CheckoutConfirmationViewState();
+  ConsumerState<CheckoutConfirmationView> createState() =>
+      _CheckoutConfirmationViewState();
 }
 
-
-class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationView> {
+class _CheckoutConfirmationViewState
+    extends ConsumerState<CheckoutConfirmationView> {
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCustomerAndCardDetails();   
+    _loadCustomerAndCardDetails();
   }
 
   Future<void> _loadCustomerAndCardDetails() async {
@@ -64,28 +67,32 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
       );
 
       // Opcional: mostrar que tiene tarjeta guardada
-      final hasSavedCard = await ref.read(shopProvider).hasSavedPaymentMethod(customer.id);
+      final hasSavedCard =
+          await ref.read(shopProvider).hasSavedPaymentMethod(customer.id);
       if (hasSavedCard) {
         ref.read(saveCardConsentProvider.notifier).state = true;
       }
     }
   }
 
-  Future<void> _showAddressBottomSheet(BuildContext context, WidgetRef ref) async {
+  Future<void> _showAddressBottomSheet(
+      BuildContext context, WidgetRef ref) async {
     final stripe.Address? result = await showModalBottomSheet<stripe.Address>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => AddressForm(initialAddress: stripe.Address(
+      builder: (context) => AddressForm(
+        initialAddress: stripe.Address(
           line1: ref.read(billingDetailsProvider)?.address?.line1,
           line2: ref.read(billingDetailsProvider)?.address?.line2,
           city: ref.read(billingDetailsProvider)?.address?.city,
           state: ref.read(billingDetailsProvider)?.address?.state,
           postalCode: ref.read(billingDetailsProvider)?.address?.postalCode,
           country: ref.read(billingDetailsProvider)?.address?.country,
-      ),),
+        ),
+      ),
     );
 
     if (result != null) {
@@ -113,7 +120,10 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
         backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.black : Colors.white), // o Colors.white si es dark
+          icon: Icon(Icons.arrow_back,
+              color: isDark
+                  ? Colors.black
+                  : Colors.white), // o Colors.white si es dark
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -125,174 +135,204 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
           ),
         ),
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BillingForm(
-                      billingDetails: billingDetails,
-                      onBillingDetailsChanged: (newDetails) {
-                        ref.read(billingDetailsProvider.notifier).state = newDetails;
-                      },
-                      onShowAddressSheet: () => _showAddressBottomSheet(context, ref),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Detalles de la Tarjeta',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    stripe.CardField(
-                      onCardChanged: (card) {
-                        ref.read(cardDetailsProvider.notifier).state = card;
-                      },
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Número de tarjeta',
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BillingForm(
+                        billingDetails: billingDetails,
+                        onBillingDetailsChanged: (newDetails) {
+                          ref.read(billingDetailsProvider.notifier).state =
+                              newDetails;
+                        },
+                        onShowAddressSheet: () =>
+                            _showAddressBottomSheet(context, ref),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: ref.watch(saveCardConsentProvider),
-                          onChanged: (val) {
-                            ref.read(saveCardConsentProvider.notifier).state = val ?? false;
-                          },
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Detalles de la Tarjeta',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      stripe.CardField(
+                        onCardChanged: (card) {
+                          ref.read(cardDetailsProvider.notifier).state = card;
+                        },
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Número de tarjeta',
                         ),
-                        const Expanded(
-                          child: Text(
-                            'Guardar tarjeta para futuras compras',
-                            style: TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: ref.watch(saveCardConsentProvider),
+                            onChanged: (val) {
+                              ref.read(saveCardConsentProvider.notifier).state =
+                                  val ?? false;
+                            },
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const Expanded(
+                            child: Text(
+                              'Guardar tarjeta para futuras compras',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const Spacer(),
-          _isLoading? const Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
-            ): CheckoutSummary(
-              subtotal: widget.subtotal,
-              delivery: widget.delivery,
-              total: widget.total,
-              onCheckout: () async {
-              if (_isLoading) return;
+            const SizedBox(height: 6),
+            _isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  )
+                : CheckoutSummary(
+                    subtotal: widget.subtotal,
+                    delivery: widget.delivery,
+                    total: widget.total,
+                    onCheckout: () async {
+                      if (_isLoading) return;
 
-              setState(() {
-                _isLoading = true;
-              });
+                      setState(() {
+                        _isLoading = true;
+                      });
 
-              try {
-                if (billingDetails == null || cardDetails == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Por favor completa todos los campos')),
-                  );
-                  return;
-                }
+                      try {
+                        if (billingDetails == null || cardDetails == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Por favor completa todos los campos')),
+                          );
+                          return;
+                        }
 
-                String id;
-                Customer? customer = await ref.read(shopProvider).getCustomer(billingDetails.email ?? '');
-                id = customer?.id ?? '';
+                        String id;
+                        Customer? customer = await ref
+                            .read(shopProvider)
+                            .getCustomer(billingDetails.email ?? '');
+                        id = customer?.id ?? '';
 
-                if (customer == null) {
-                  id = await ref.read(shopProvider).registerCustomer(
-                    Customer(
-                      id: '',
-                      email: billingDetails.email,
-                      name: billingDetails.name,
-                      phone: billingDetails.phone,
-                      gdprConsent: ref.read(saveCardConsentProvider),
-                      address: {
-                        'line1': billingDetails.address?.line1,
-                        'line2': billingDetails.address?.line2,
-                        'city': billingDetails.address?.city,
-                        'country': billingDetails.address?.country,
-                        'postalCode': billingDetails.address?.postalCode,
-                        'state': billingDetails.address?.state,
-                      },
-                    ),
-                  );
-                } else {
-                  await ref.read(shopProvider).updateCustomer(
-                    Customer(
-                      id: id,
-                      email: billingDetails.email ?? '',
-                      name: billingDetails.name ?? '',
-                      phone: billingDetails.phone ?? '',
-                      gdprConsent: ref.read(saveCardConsentProvider),
-                      address: {
-                        'line1': billingDetails.address?.line1 ?? '',
-                        'line2': billingDetails.address?.line2 ?? '',
-                        'city': billingDetails.address?.city ?? '',
-                        'country': billingDetails.address?.country,
-                        'postalCode': billingDetails.address?.postalCode ?? '',
-                        'state': billingDetails.address?.state ?? '',
-                      },
-                    ),
-                  );
-                }
+                        if (customer == null) {
+                          id = await ref.read(shopProvider).registerCustomer(
+                                Customer(
+                                  id: '',
+                                  email: billingDetails.email,
+                                  name: billingDetails.name,
+                                  phone: billingDetails.phone,
+                                  gdprConsent:
+                                      ref.read(saveCardConsentProvider),
+                                  address: {
+                                    'line1': billingDetails.address?.line1,
+                                    'line2': billingDetails.address?.line2,
+                                    'city': billingDetails.address?.city,
+                                    'country': billingDetails.address?.country,
+                                    'postalCode':
+                                        billingDetails.address?.postalCode,
+                                    'state': billingDetails.address?.state,
+                                  },
+                                ),
+                              );
+                        } else {
+                          await ref.read(shopProvider).updateCustomer(
+                                Customer(
+                                  id: id,
+                                  email: billingDetails.email ?? '',
+                                  name: billingDetails.name ?? '',
+                                  phone: billingDetails.phone ?? '',
+                                  gdprConsent:
+                                      ref.read(saveCardConsentProvider),
+                                  address: {
+                                    'line1':
+                                        billingDetails.address?.line1 ?? '',
+                                    'line2':
+                                        billingDetails.address?.line2 ?? '',
+                                    'city': billingDetails.address?.city ?? '',
+                                    'country': billingDetails.address?.country,
+                                    'postalCode':
+                                        billingDetails.address?.postalCode ??
+                                            '',
+                                    'state':
+                                        billingDetails.address?.state ?? '',
+                                  },
+                                ),
+                              );
+                        }
 
-                if (cardDetails.complete) {
-                  final paymentMethod = await stripe.Stripe.instance.createPaymentMethod(
-                    params: stripe.PaymentMethodParams.card(
-                      paymentMethodData: stripe.PaymentMethodData(
-                        billingDetails: billingDetails,
-                      ),
-                    ),
-                  );
+                        if (cardDetails.complete) {
+                          final paymentMethod =
+                              await stripe.Stripe.instance.createPaymentMethod(
+                            params: stripe.PaymentMethodParams.card(
+                              paymentMethodData: stripe.PaymentMethodData(
+                                billingDetails: billingDetails,
+                              ),
+                            ),
+                          );
 
-                  await ref.read(shopProvider).addCardToCustomer(
-                    Customer(
-                      id: id,
-                      email: billingDetails.email ?? '',
-                      name: billingDetails.name ?? '',
-                      phone: billingDetails.phone ?? '',
-                      gdprConsent: ref.read(saveCardConsentProvider),
-                      address: {
-                        'line1': billingDetails.address?.line1 ?? '',
-                        'line2': billingDetails.address?.line2 ?? '',
-                        'city': billingDetails.address?.city ?? '',
-                        'country': billingDetails.address?.country,
-                        'postalCode': billingDetails.address?.postalCode ?? '',
-                        'state': billingDetails.address?.state ?? '',
-                      },
-                    ),
-                    amount,
-                    paymentMethod,
-                  );
+                          await ref.read(shopProvider).addCardToCustomer(
+                                Customer(
+                                  id: id,
+                                  email: billingDetails.email ?? '',
+                                  name: billingDetails.name ?? '',
+                                  phone: billingDetails.phone ?? '',
+                                  gdprConsent:
+                                      ref.read(saveCardConsentProvider),
+                                  address: {
+                                    'line1':
+                                        billingDetails.address?.line1 ?? '',
+                                    'line2':
+                                        billingDetails.address?.line2 ?? '',
+                                    'city': billingDetails.address?.city ?? '',
+                                    'country': billingDetails.address?.country,
+                                    'postalCode':
+                                        billingDetails.address?.postalCode ??
+                                            '',
+                                    'state':
+                                        billingDetails.address?.state ?? '',
+                                  },
+                                ),
+                                amount,
+                                paymentMethod,
+                              );
 
-                  context.go("/shop");
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Por favor completa los detalles de la tarjeta')),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              } finally {
-                setState(() {
-                  _isLoading = false;
-                });
-              }
-            },
-          )
-        ],
+                          context.go("/shop");
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Por favor completa los detalles de la tarjeta')),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: ${e.toString()}')),
+                        );
+                      } finally {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    },
+                  )
+          ],
+        ),
       ),
     );
   }
@@ -322,9 +362,12 @@ class _BillingFormState extends State<BillingForm> {
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController(text: widget.billingDetails?.email ?? '');
-    _phoneController = TextEditingController(text: widget.billingDetails?.phone ?? '');
-    _nameController = TextEditingController(text: widget.billingDetails?.name ?? '');
+    _emailController =
+        TextEditingController(text: widget.billingDetails?.email ?? '');
+    _phoneController =
+        TextEditingController(text: widget.billingDetails?.phone ?? '');
+    _nameController =
+        TextEditingController(text: widget.billingDetails?.name ?? '');
   }
 
   @override
@@ -351,19 +394,22 @@ class _BillingFormState extends State<BillingForm> {
 
   void _onEmailChanged(String val) {
     widget.onBillingDetailsChanged(
-      (widget.billingDetails ?? const stripe.BillingDetails()).copyWith(email: val.trim()),
+      (widget.billingDetails ?? const stripe.BillingDetails())
+          .copyWith(email: val.trim()),
     );
   }
 
   void _onPhoneChanged(String val) {
     widget.onBillingDetailsChanged(
-      (widget.billingDetails ?? const stripe.BillingDetails()).copyWith(phone: val.trim()),
+      (widget.billingDetails ?? const stripe.BillingDetails())
+          .copyWith(phone: val.trim()),
     );
   }
 
   void _onNameChanged(String val) {
     widget.onBillingDetailsChanged(
-      (widget.billingDetails ?? const stripe.BillingDetails()).copyWith(name: val.trim()),
+      (widget.billingDetails ?? const stripe.BillingDetails())
+          .copyWith(name: val.trim()),
     );
   }
 
@@ -419,7 +465,8 @@ class _BillingFormState extends State<BillingForm> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Dirección'),
-              Text(widget.billingDetails?.address?.line1 ?? 'Agregar dirección'),
+              Text(
+                  widget.billingDetails?.address?.line1 ?? 'Agregar dirección'),
               const Icon(Icons.arrow_forward_ios, size: 16),
             ],
           ),

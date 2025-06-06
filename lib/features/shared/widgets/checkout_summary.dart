@@ -56,7 +56,7 @@ class CheckoutSummary extends StatelessWidget {
                     ),
                   ),
                   onPressed: onCheckout,
-                  child: const Text('Checkout', style: TextStyle(fontSize: 16)),
+                  child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],
