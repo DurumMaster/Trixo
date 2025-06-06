@@ -572,7 +572,7 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
                     final isAtMax = provider.hasReachedMax;
                     return GestureDetector(
                       onTap: () {
-                        if (!isAtMax && provider.isSelected(key)) {
+                        if (!isAtMax) {
                           notifier.togglePreference(key);
                         }
                       },
