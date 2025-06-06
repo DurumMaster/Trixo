@@ -94,7 +94,22 @@ final goRouterProvider = Provider((ref) {
               ),
               GoRoute(
                 path: '/checkout_confirmation',
-                builder: (context, state) => const CheckoutConfirmationView(),
+                builder: (context, state) {
+                  final extra = state.extra;
+                  if (extra is Map<String, double>) {
+                    return CheckoutConfirmationView(
+                      subtotal: extra['subtotal'] ?? 0.0,
+                      delivery: extra['delivery'] ?? 0.0,
+                      total: extra['total'] ?? 0.0,
+                    );
+                  } else {
+                    return const CheckoutConfirmationView(
+                      subtotal: 0.0,
+                      delivery: 0.0,
+                      total: 0.0,
+                    );
+                  }
+                },
               ),
             ])
           ]),

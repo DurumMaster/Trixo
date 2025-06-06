@@ -41,4 +41,9 @@ class ShopRepositoryImpl extends ShopRepository {
   Future<bool> hasSavedPaymentMethod(String customerId) {
     return datasource.hasSavedPaymentMethod(customerId);
   }
+
+  @override
+  Future<void> updateCustomer(Customer customer) {
+    return datasource.updateCustomer(customer);
+  }
 }

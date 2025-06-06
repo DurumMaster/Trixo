@@ -234,18 +234,18 @@ Widget _buildThemeSliderSelector(BuildContext context, WidgetRef ref) {
   final themeMode = ref.watch(themeModeProvider);
 
   final colors = [
-    Colors.blueGrey.shade900,
-    Colors.orange.shade600,
     Colors.green.shade600,
+    Colors.orange.shade600,
+    Colors.blueGrey.shade900,
   ];
 
   final icons = [
-    Icons.nightlight_round,
-    Icons.wb_sunny_rounded,
     Icons.brightness_auto,
+    Icons.wb_sunny_rounded,
+    Icons.nightlight_round,
   ];
 
-  final labels = ["Oscuro", "Claro", "Sistema"];
+  final labels = ["Sistema", "Claro", "Oscuro"];
 
   return _ThemeSliderSelectorInternal(
     initialIndex: ThemeMode.values.indexOf(themeMode),

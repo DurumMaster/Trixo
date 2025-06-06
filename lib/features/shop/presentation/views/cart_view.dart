@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/shop/domain/shop_domain.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/cart_provider.dart';
 import 'package:trixo_frontend/features/shared/widgets/checkout_summary.dart';
@@ -195,16 +196,12 @@ class CartView extends ConsumerWidget {
             delivery: delivery,
             total: total,
             onCheckout: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) {
-                    return Scaffold(
-                      appBar: AppBar(title: const Text('Checkout')),
-                      body: const Center(
-                          child: Text('Aquí iría el proceso de pago')),
-                    );
-                  },
-                ),
+              context.go("/checkout_confirmation",
+                extra: {
+                  'subtotal': subtotal,
+                  'delivery': delivery,
+                  'total': total,
+                },
               );
             },
           ),

@@ -35,14 +35,14 @@ class CheckoutSummary extends StatelessWidget {
             ],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min, // 🔑 hace que se ajuste al contenido
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _priceRow('Subtotal', '${subtotal?.toStringAsFixed(2) ?? '0.00'}€'),
+              _priceRow('Subtotal', '$subtotal€'),
               const SizedBox(height: 6),
-              _priceRow('Envío', '${delivery?.toStringAsFixed(2) ?? '0.00'}€'),
+              _priceRow('Envío', '$delivery€'),
               const Divider(height: 20, thickness: 0.7, color: Colors.black26),
-              _priceRow('Total', '${total?.toStringAsFixed(2) ?? '0.00'}€', isBold: true),
+              _priceRow('Total', '$total€', isBold: true),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -56,7 +56,7 @@ class CheckoutSummary extends StatelessWidget {
                     ),
                   ),
                   onPressed: onCheckout,
-                  child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
+                  child: const Text('Checkout', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],

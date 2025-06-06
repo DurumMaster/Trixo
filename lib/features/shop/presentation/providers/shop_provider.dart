@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -93,10 +91,7 @@ class ShopNotifier extends ChangeNotifier {
         ),
         paymentMethod.id,
       );
-
-      print('Tarjeta asociada exitosamente.');
     } catch (e) {
-      print('Error agregando tarjeta: $e');
       rethrow;
     }
   }
@@ -108,6 +103,16 @@ class ShopNotifier extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error al verificar métodos de pago: $e');
       return false;
+    }
+  }
+
+  Future<void> updateCustomer(Customer customer) async {
+    try {
+      await _repository.updateCustomer(customer);
+      debugPrint('Cliente actualizado exitosamente: ${customer.id}');
+    } catch (e) {
+      debugPrint('Error al actualizar cliente: $e');
+      rethrow;
     }
   }
 }

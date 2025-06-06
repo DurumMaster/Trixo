@@ -10,4 +10,5 @@ abstract class ShopDatasource {
   Future<void> insertCardToCustomer(PaymentDto paymentDto, String paymentMethodId);
   Future<Customer> insertCustomer(Customer customer);
   Future<bool> hasSavedPaymentMethod(String customerId);
+  Future<void> updateCustomer(Customer customer);
 }

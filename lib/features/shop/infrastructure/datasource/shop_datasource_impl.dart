@@ -105,7 +105,7 @@ class ShopDatasourceImpl extends ShopDatasource {
       if (response.statusCode == 201) {
         return;
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error: ${response.data}');
       }
     } catch (e) {
       throw Exception('Fallo al crear PaymentIntent: $e');
@@ -144,4 +144,19 @@ class ShopDatasourceImpl extends ShopDatasource {
     }
   }
 
+  @override
+  Future<void> updateCustomer(Customer customer) async {
+    try {
+      final response = await dio.put(
+        '/products/${customer.id}/customer',
+        data: CustomerMapper.toJson(customer),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al actualizar cliente: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Fallo al actualizar cliente: $e');
+    }
+  }
 }

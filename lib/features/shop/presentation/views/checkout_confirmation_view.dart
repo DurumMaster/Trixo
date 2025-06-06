@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_text_field_form.dart';
 import 'package:trixo_frontend/features/shared/widgets/checkout_summary.dart';
 import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
@@ -13,12 +14,21 @@ final cardDetailsProvider = StateProvider<stripe.CardFieldInputDetails?>((ref) =
 final saveCardConsentProvider = StateProvider<bool>((ref) => false);
 
 class CheckoutConfirmationView extends ConsumerStatefulWidget {
-  final int amount;
-  const CheckoutConfirmationView({super.key, this.amount = 100});
+  final double subtotal;
+  final double delivery;
+  final double total;
+
+  const CheckoutConfirmationView({
+    super.key,
+    required this.subtotal,
+    required this.delivery,
+    required this.total,
+  });
 
   @override
   ConsumerState<CheckoutConfirmationView> createState() => _CheckoutConfirmationViewState();
 }
+
 
 class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationView> {
   bool _isLoading = false;
@@ -68,7 +78,14 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => const AddressBottomSheet(),
+      builder: (context) => AddressForm(initialAddress: stripe.Address(
+          line1: ref.read(billingDetailsProvider)?.address?.line1,
+          line2: ref.read(billingDetailsProvider)?.address?.line2,
+          city: ref.read(billingDetailsProvider)?.address?.city,
+          state: ref.read(billingDetailsProvider)?.address?.state,
+          postalCode: ref.read(billingDetailsProvider)?.address?.postalCode,
+          country: ref.read(billingDetailsProvider)?.address?.country,
+      ),),
     );
 
     if (result != null) {
@@ -88,17 +105,21 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final billingDetails = ref.watch(billingDetailsProvider);
     final cardDetails = ref.watch(cardDetailsProvider);
+    final int amount = (widget.total * 100).round();
 
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
-        leading: const BackButton(color: Colors.white),
-        title: const Text(
-          'My Cart',
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.black : Colors.white), // o Colors.white si es dark
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          'Datos de Pedido',
           style: TextStyle(
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -129,13 +150,6 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
-                    if (ref.watch(saveCardConsentProvider)) ...[
-                      const Text(
-                        'Ya tienes una tarjeta guardada. Puedes usarla o ingresar otra.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
                     stripe.CardField(
                       onCardChanged: (card) {
                         ref.read(cardDetailsProvider.notifier).state = card;
@@ -172,9 +186,9 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
               padding: EdgeInsets.all(16),
               child: CircularProgressIndicator(),
             ): CheckoutSummary(
-              subtotal: widget.amount.toDouble(),
-              delivery: widget.amount != 0 ? 20.0 : 0.0,
-              total: widget.amount.toDouble() + (widget.amount != 0 ? 20.0 : 0.0),
+              subtotal: widget.subtotal,
+              delivery: widget.delivery,
+              total: widget.total,
               onCheckout: () async {
               if (_isLoading) return;
 
@@ -212,6 +226,24 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
                       },
                     ),
                   );
+                } else {
+                  await ref.read(shopProvider).updateCustomer(
+                    Customer(
+                      id: id,
+                      email: billingDetails.email ?? '',
+                      name: billingDetails.name ?? '',
+                      phone: billingDetails.phone ?? '',
+                      gdprConsent: ref.read(saveCardConsentProvider),
+                      address: {
+                        'line1': billingDetails.address?.line1 ?? '',
+                        'line2': billingDetails.address?.line2 ?? '',
+                        'city': billingDetails.address?.city ?? '',
+                        'country': billingDetails.address?.country,
+                        'postalCode': billingDetails.address?.postalCode ?? '',
+                        'state': billingDetails.address?.state ?? '',
+                      },
+                    ),
+                  );
                 }
 
                 if (cardDetails.complete) {
@@ -226,25 +258,24 @@ class _CheckoutConfirmationViewState extends ConsumerState<CheckoutConfirmationV
                   await ref.read(shopProvider).addCardToCustomer(
                     Customer(
                       id: id,
-                      email: billingDetails.email,
-                      name: billingDetails.name,
-                      phone: billingDetails.phone,
+                      email: billingDetails.email ?? '',
+                      name: billingDetails.name ?? '',
+                      phone: billingDetails.phone ?? '',
+                      gdprConsent: ref.read(saveCardConsentProvider),
                       address: {
-                        'line1': billingDetails.address?.line1,
-                        'line2': billingDetails.address?.line2,
-                        'city': billingDetails.address?.city,
+                        'line1': billingDetails.address?.line1 ?? '',
+                        'line2': billingDetails.address?.line2 ?? '',
+                        'city': billingDetails.address?.city ?? '',
                         'country': billingDetails.address?.country,
-                        'postalCode': billingDetails.address?.postalCode,
-                        'state': billingDetails.address?.state,
+                        'postalCode': billingDetails.address?.postalCode ?? '',
+                        'state': billingDetails.address?.state ?? '',
                       },
                     ),
-                    widget.amount,
+                    amount,
                     paymentMethod,
                   );
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Pago realizado exitosamente')),
-                  );
+                  context.go("/shop");
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Por favor completa los detalles de la tarjeta')),
