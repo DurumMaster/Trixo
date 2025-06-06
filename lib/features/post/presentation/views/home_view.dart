@@ -139,7 +139,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
         if (_isAnySectionLoading(postState))
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha(77),
               child: Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(

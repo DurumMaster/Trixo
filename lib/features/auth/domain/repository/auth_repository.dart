@@ -6,8 +6,8 @@ abstract class AuthRepository {
     required String id,
     required String username,
     required String email,
-    required String avatar_img,
-    required DateTime registration_date,
+    required String avatarImg,
+    required DateTime registrationDate,
   });
 
   Future<void> saveUserPreferences({

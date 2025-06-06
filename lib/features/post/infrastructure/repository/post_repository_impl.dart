@@ -90,6 +90,7 @@ class PostRepositoryImpl extends PostRepository {
     return datasource.searchPosts(query, limit, offset);
   }
 
+  @override
   Future<String> uploadAvatar(String userId, String avatarPath) {
     return datasource.uploadAvatar(userId, avatarPath);
   }

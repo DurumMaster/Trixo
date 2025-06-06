@@ -48,7 +48,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   Future<void> submit() async {
     final created = await ref.read(signUpFormProvider.notifier).onFormSubmit();
-    if (!created && context.mounted) {
+    if (!mounted) return;
+
+    if (!created) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -56,17 +58,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           ),
         ),
       );
-
       return;
     }
 
-    if (context.mounted) {
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _EmailVerificationDialog(ref: ref),
-      );
-    }
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _EmailVerificationDialog(ref: ref),
+    );
   }
 
   @override
@@ -85,8 +84,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Column(
               children: [
-                    AuthAnimationWidget(key: widget.animationKey),
-                    const SizedBox(height: 25),
+                AuthAnimationWidget(key: widget.animationKey),
+                const SizedBox(height: 25),
                 Text('¡Crea tu cuenta en Trixo! 🎉',
                     style: textTheme.titleMedium),
                 const SizedBox(height: 50),
@@ -181,8 +180,8 @@ class _EmailVerificationDialogState extends State<_EmailVerificationDialog> {
               id: user.uid,
               username: widget.ref.read(signUpFormProvider).username.value,
               email: user.email!,
-              avatar_img: user.photoURL ?? '',
-              registration_date: DateTime.now(),
+              avatarImg: user.photoURL ?? '',
+              registrationDate: DateTime.now(),
             );
       }
 

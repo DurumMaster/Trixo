@@ -81,7 +81,7 @@ class _MUILoadingButtonState extends State<MUILoadingButton> {
           boxShadow: widget.boxShadows ??
               [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withAlpha(51),
                   blurRadius: 6,
                   offset: const Offset(0, 3),
                 ),

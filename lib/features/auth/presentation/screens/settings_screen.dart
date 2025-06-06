@@ -417,8 +417,7 @@ class _ThemeSliderSelectorInternalState
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                widget.colors[_selectedIndex].withOpacity(0.6),
+                            color: widget.colors[_selectedIndex].withAlpha(153),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),

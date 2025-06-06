@@ -271,7 +271,7 @@ class _PostCardState extends ConsumerState<PostCard>
           onTap: _removeZoomOverlay,
           onLongPressEnd: (_) => _removeZoomOverlay(),
           child: Container(
-            color: Colors.black.withOpacity(0.95),
+            color: Colors.black.withAlpha(242),
             child: Center(
               child: ScaleTransition(
                 scale: _overlayPopupAnimation,
@@ -367,7 +367,7 @@ class _PostCardState extends ConsumerState<PostCard>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withAlpha(128),
           borderRadius: BorderRadius.circular(20),
         ),
         child: RichText(
@@ -393,7 +393,7 @@ class _PostCardState extends ConsumerState<PostCard>
       right: 8,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.4),
+          color: Colors.black.withAlpha(102),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Material(
@@ -467,7 +467,7 @@ class _PostCardState extends ConsumerState<PostCard>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                tileColor: AppColors.error.withOpacity(0.05),
+                tileColor: AppColors.error.withAlpha(13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -486,7 +486,7 @@ class _PostCardState extends ConsumerState<PostCard>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                tileColor: AppColors.error.withOpacity(0.05),
+                tileColor: AppColors.error.withAlpha(13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -504,7 +504,7 @@ class _PostCardState extends ConsumerState<PostCard>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                tileColor: AppColors.error.withOpacity(0.05),
+                tileColor: AppColors.error.withAlpha(13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

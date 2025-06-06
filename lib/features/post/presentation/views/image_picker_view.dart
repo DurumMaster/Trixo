@@ -150,7 +150,7 @@ class _ImagePickerViewState extends ConsumerState<ImagePickerView> {
                 boxShadows: [
                   BoxShadow(
                     color:
-                        Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                        Theme.of(context).colorScheme.shadow.withAlpha(51),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -211,7 +211,7 @@ class _ImagePickerViewState extends ConsumerState<ImagePickerView> {
                         width: double.infinity,
                         height: double.infinity,
                         errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.black.withOpacity(0.1),
+                          color: AppColors.black.withAlpha(26),
                           child: Icon(Icons.broken_image,
                               color: Theme.of(context).colorScheme.error),
                         ),
@@ -227,7 +227,7 @@ class _ImagePickerViewState extends ConsumerState<ImagePickerView> {
                             color: Theme.of(context)
                                 .colorScheme
                                 .surface
-                                .withOpacity(0.6),
+                                .withAlpha(153),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.close, size: 20, color: iconColor),
@@ -254,7 +254,7 @@ class _ImagePickerViewState extends ConsumerState<ImagePickerView> {
                   height: isActive ? 12 : 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isActive ? iconColor : iconColor.withOpacity(0.3),
+                    color: isActive ? iconColor : iconColor.withAlpha(77),
                   ),
                 );
               }),

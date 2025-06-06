@@ -209,7 +209,7 @@ class SearchView extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: Colors.black.withAlpha(10),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),

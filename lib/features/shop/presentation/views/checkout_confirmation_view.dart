@@ -329,18 +329,21 @@ class _CheckoutConfirmationViewState
                                 paymentMethod,
                               );
 
-                          Map<int, int> productos = ref.read(cartProvider.notifier).getProductQuantities();
+                          Map<int, int> productos = ref
+                              .read(cartProvider.notifier)
+                              .getProductQuantities();
 
                           await ref.read(shopProvider).reduceStock(productos);
 
                           ref.read(cartProvider.notifier).clearCart();
-
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) => const SuccessDialog(),
-                          );
-                        } else {
+                          if (context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => const SuccessDialog(),
+                            );
+                          }
+                        } else if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text(
@@ -348,9 +351,13 @@ class _CheckoutConfirmationViewState
                           );
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Ha ocurrido un error al realizar el pago')),
-                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Ha ocurrido un error al realizar el pago')),
+                          );
+                        }
                       }
                     },
                   )
@@ -554,9 +561,8 @@ class SuccessDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: isDark
-              ? colorScheme.outline
-              : colorScheme.primary.withOpacity(0.3),
+          color:
+              isDark ? colorScheme.outline : colorScheme.primary.withAlpha(77),
           width: 1,
         ),
       ),
@@ -589,7 +595,7 @@ class SuccessDialog extends StatelessWidget {
                 fontSize: 16,
                 color: isDark
                     ? colorScheme.onSurfaceVariant
-                    : colorScheme.onSurface.withOpacity(0.8),
+                    : colorScheme.onSurface.withAlpha(204),
               ),
             ),
             const SizedBox(height: 28),
@@ -613,7 +619,7 @@ class SuccessDialog extends StatelessWidget {
                 elevation: 2,
                 shadowColor: isDark
                     ? Colors.transparent
-                    : colorScheme.primary.withOpacity(0.3),
+                    : colorScheme.primary.withAlpha(77),
               ),
               child: const Text(
                 'Continuar',

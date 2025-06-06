@@ -27,14 +27,14 @@ class CustomTagButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.2) : Colors.transparent,
+          color: selected ? color.withAlpha(51) : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: selected
                 ? color
                 : (isDark
-                    ? Colors.white.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.1)),
+                    ? Colors.white.withAlpha(77)
+                    : Colors.black.withAlpha(26)),
             width: 1.5,
           ),
         ),

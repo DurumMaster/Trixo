@@ -172,7 +172,7 @@ class _EditProfileBottomSheetState
                         right: 4,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
+                            color: Colors.black.withAlpha(153),
                             shape: BoxShape.circle,
                           ),
                           padding: const EdgeInsets.all(6),
@@ -328,7 +328,7 @@ class _FAQCardState extends State<_FAQCard> {
         boxShadow: [
           if (!_isExpanded)
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.	withAlpha(26),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -515,7 +515,7 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      backgroundColor: color.withOpacity(0.8),
+                      backgroundColor: color.withAlpha(204),
                       onDeleted: () {
                         notifier.togglePreference(key);
                       },
@@ -531,7 +531,7 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
                 child: Text(
                   'No tienes preferencias seleccionadas aún. Elige abajo.',
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: textColor.withOpacity(0.7),
+                        color: textColor.withAlpha(179),
                       ),
                 ),
               ),
@@ -583,8 +583,8 @@ class _UpdatePreferencesViewState extends ConsumerState<UpdatePreferencesView> {
                             horizontal: 12, vertical: 10),
                         height: 56.0 * [1, 1.2, 1.5][index % 3],
                         decoration: BoxDecoration(
-                          color: color.withOpacity(
-                              provider.isSelected(key) ? 0.9 : 0.3),
+                          color: color.withAlpha(
+                              provider.isSelected(key) ? 230 : 77),
                           borderRadius: BorderRadius.circular(18),
                           border: provider.isSelected(key)
                               ? Border.all(

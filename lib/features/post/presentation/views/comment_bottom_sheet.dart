@@ -68,7 +68,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
               width: 40,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.4),
+                color: Colors.grey.	withAlpha(102),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -134,7 +134,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                         hintStyle:
                             TextStyle(color: Theme.of(context).hintColor),
                         filled: true,
-                        fillColor: Colors.grey.withOpacity(0.1),
+                        fillColor: Colors.grey.withAlpha(26),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide.none,

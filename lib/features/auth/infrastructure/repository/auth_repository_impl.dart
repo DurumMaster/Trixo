@@ -12,15 +12,15 @@ class AuthRepositoryImpl extends AuthRepository {
     required String id,
     required String username,
     required String email,
-    required String avatar_img,
-    required DateTime registration_date,
+    required String avatarImg,
+    required DateTime registrationDate,
   }) {
     return datasource.registerUser(
       id: id,
       username: username,
       email: email,
-      avatar_img: avatar_img,
-      registration_date: registration_date,
+      avatarImg: avatarImg,
+      registrationDate: registrationDate,
     );
   }
 
@@ -40,10 +40,12 @@ class AuthRepositoryImpl extends AuthRepository {
   Future<User> getUserById({required String userId}) {
     return datasource.getUserById(userId: userId);
   }
-  
+
   @override
-  Future<bool> updateUserPreferences({required String userId, required List<String> preferences}) {
-    return datasource.updateUserPreferences(userId: userId, preferences: preferences);
+  Future<bool> updateUserPreferences(
+      {required String userId, required List<String> preferences}) {
+    return datasource.updateUserPreferences(
+        userId: userId, preferences: preferences);
   }
 
   @override

@@ -194,16 +194,16 @@ class LoginScreen extends ConsumerWidget {
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     final user = firebaseAuth.currentUser;
 
-    if(user != null){
+    if (user != null) {
       final userDB = await authRepository.getUserById(userId: user.uid);
-      if(userDB.id.isEmpty && userDB.email.isEmpty){
+      if (userDB.id.isEmpty && userDB.email.isEmpty) {
         await ref.watch(authRepositoryProvider).registerUser(
-          id: user.uid, 
-          username: user.displayName ?? '', 
-          email: user.email!, 
-          avatar_img: user.photoURL ?? '', 
-          registration_date: DateTime.now(),
-        );
+              id: user.uid,
+              username: user.displayName ?? '',
+              email: user.email!,
+              avatarImg: user.photoURL ?? '',
+              registrationDate: DateTime.now(),
+            );
       }
     }
 

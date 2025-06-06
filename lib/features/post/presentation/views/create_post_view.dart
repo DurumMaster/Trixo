@@ -71,12 +71,12 @@ class CreatePostView extends ConsumerWidget {
                         hintText:
                             'Cuéntale al mundo qué hace especial tu diseño. Una buena descripción ayuda a que más personas conecten con tu estilo.',
                         hintStyle: TextStyle(
-                          color: onSurf.withOpacity(0.6),
+                          color: onSurf.withAlpha(153),
                           fontSize: 13,
                         ),
                         border: InputBorder.none,
                         counterText: '${state.description.length}/$_maxChars',
-                        counterStyle: TextStyle(color: onSurf.withOpacity(0.6)),
+                        counterStyle: TextStyle(color: onSurf.withAlpha(153)),
                       ),
                     ),
                   ),
@@ -97,7 +97,8 @@ class CreatePostView extends ConsumerWidget {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.15),
+                            color: Colors.grey.withAlpha(38)
+,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -178,7 +179,7 @@ class CreatePostView extends ConsumerWidget {
                       borderRadius: 12,
                       boxShadows: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withAlpha(51),
                           blurRadius: 6,
                           offset: const Offset(0, 3),
                         ),
@@ -291,11 +292,12 @@ class _CreatePostSelectTagsViewState
                     const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? color.withOpacity(0.8)
-                      : color.withOpacity(0.4),
+                      ? color.withAlpha(204)
+                      : color.withAlpha(102),
                   borderRadius: BorderRadius.circular(20),
                   border: isSelected
-                      ? Border.all(color: color.withOpacity(0.9), width: 2)
+                      ? Border.all(color: color.withAlpha(230)
+, width: 2)
                       : null,
                 ),
                 child: Text(

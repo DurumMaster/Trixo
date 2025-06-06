@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:trixo_frontend/features/auth/domain/entity/user.dart' as trixo_user;
+import 'package:trixo_frontend/features/auth/domain/entity/user.dart'
+    as trixo_user;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/auth/domain/datasource/auth_datasource.dart';
@@ -26,8 +27,8 @@ class AuthDatasourceImpl extends AuthDataSource {
     required String id,
     required String username,
     required String email,
-    required String avatar_img,
-    required DateTime registration_date,
+    required String avatarImg,
+    required DateTime registrationDate,
   }) async {
     try {
       final response = await dio.post(
@@ -36,8 +37,8 @@ class AuthDatasourceImpl extends AuthDataSource {
           'id': id,
           'username': username,
           'email': email,
-          'avatar_img': avatar_img,
-          'registration_date': registration_date.toIso8601String(),
+          'avatar_img': avatarImg,
+          'registration_date': registrationDate.toIso8601String(),
         },
       );
 
@@ -113,7 +114,7 @@ class AuthDatasourceImpl extends AuthDataSource {
     }
   }
 
-@override
+  @override
   Future<bool> updateUserPreferences({
     required String userId,
     required List<String> preferences,
@@ -137,8 +138,7 @@ class AuthDatasourceImpl extends AuthDataSource {
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
         return false;
-      }
-      else if (e.response?.statusCode == 500) {
+      } else if (e.response?.statusCode == 500) {
         return false;
       }
       return false;
@@ -153,7 +153,7 @@ class AuthDatasourceImpl extends AuthDataSource {
     preferences.remove("jwt_token");
     await FirebaseAuth.instance.signOut();
   }
-  
+
   @override
   Future<trixo_user.User> getUserById({required String userId}) async {
     try {

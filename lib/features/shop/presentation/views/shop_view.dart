@@ -275,7 +275,7 @@ class _AnimatedArrowButtonState extends State<_AnimatedArrowButton> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor =
-        isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05);
+        isDark ? Colors.white.withAlpha(26) : Colors.black.withAlpha(128);
     final iconColor = isDark ? Colors.white70 : Colors.black87;
 
     return GestureDetector(
@@ -338,7 +338,7 @@ class _ThumbnailCard extends StatelessWidget {
 
     final backgroundColor = isDark ? Colors.grey[900] : Colors.grey[200];
     final shadowColor =
-        isDark ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.3);
+        isDark ? Colors.black.withAlpha(102) : Colors.grey.withAlpha(77);
     final iconColor = isDark ? Colors.white38 : Colors.black38;
     final progressColor = isDark ? Colors.white54 : Colors.black45;
 
@@ -753,7 +753,7 @@ class _UserCreatorInfo extends ConsumerWidget {
                 width: 40,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: loaderColor.withOpacity(0.3),
+                  color: loaderColor.withAlpha(77),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -878,7 +878,7 @@ class AddToCartSection extends ConsumerWidget {
           maxHorizontalPadding: 50,
           boxShadows: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withAlpha(51),
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -1112,10 +1112,8 @@ class ShopViewState extends ConsumerState<ShopView> {
                 color: Theme.of(context).colorScheme.secondary,
                 shadows: [
                   Shadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .secondary
-                        .withOpacity(0.4),
+                    color:
+                        Theme.of(context).colorScheme.secondary.withAlpha(102),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),

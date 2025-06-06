@@ -69,7 +69,7 @@ class _ProfileViewState extends ConsumerState<ProfileView>
       return GestureDetector(
         onTap: _removeZoomOverlay,
         child: Container(
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withAlpha(204),
           child: Center(
             child: ScaleTransition(
               scale: _zoomAnim,
@@ -108,7 +108,8 @@ class _ProfileViewState extends ConsumerState<ProfileView>
     final loadingBoxColor =
         isLight ? Colors.grey.shade300 : Colors.grey.shade800;
     final overlayGradientBottom =
-        isLight ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.9);
+        isLight ? Colors.white.withAlpha(179) : Colors.black.withAlpha(230)
+;
 
     return Scaffold(
       backgroundColor: isLight ? Colors.white : Colors.black,
@@ -250,7 +251,7 @@ class _ProfileViewState extends ConsumerState<ProfileView>
                         textAlign: TextAlign.center,
                         style: textTheme.bodyMedium?.copyWith(
                           color: (isLight ? Colors.black : Colors.white)
-                              .withOpacity(0.8),
+                              .withAlpha(204),
                         ),
                       ),
                     ],
@@ -393,7 +394,7 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final primary = isLight ? Colors.black : Colors.white;
-    final secondary = primary.withOpacity(0.7);
+    final secondary = primary.withAlpha(179);
     return Column(
       children: [
         Text(value,
@@ -420,7 +421,7 @@ class _ProfileTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final sel = isLight ? Colors.black : Colors.white;
-    final unsel = sel.withOpacity(0.5);
+    final unsel = sel.withAlpha(128);
     Widget tab(IconData icon, int i) {
       final s = current == i;
       return GestureDetector(

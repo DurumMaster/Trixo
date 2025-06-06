@@ -5,10 +5,10 @@ class CardBottomSheet extends StatefulWidget {
   const CardBottomSheet({super.key});
 
   @override
-  _CardBottomSheetState createState() => _CardBottomSheetState();
+  CardBottomSheetState createState() => CardBottomSheetState();
 }
 
-class _CardBottomSheetState extends State<CardBottomSheet> {
+class CardBottomSheetState extends State<CardBottomSheet> {
   CardFieldInputDetails? _localCardDetails;
 
   @override

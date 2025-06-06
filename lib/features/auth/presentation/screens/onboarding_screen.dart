@@ -109,8 +109,9 @@ class _OnboardingPreferencesViewState
                         height: 56.0 * randomHeight,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? entry.value.withOpacity(0.9)
-                              : entry.value.withOpacity(0.3),
+                              ? entry.value.withAlpha(230)
+
+                              : entry.value.	withAlpha(77),
                           borderRadius: BorderRadius.circular(18),
                           border: isSelected
                               ? Border.all(

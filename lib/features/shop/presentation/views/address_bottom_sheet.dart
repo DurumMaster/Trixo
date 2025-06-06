@@ -7,10 +7,10 @@ class AddressForm extends StatefulWidget {
   const AddressForm({super.key, this.initialAddress});
 
   @override
-  _AddressFormState createState() => _AddressFormState();
+  AddressFormState createState() => AddressFormState();
 }
 
-class _AddressFormState extends State<AddressForm> {
+class AddressFormState extends State<AddressForm> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _line1Controller;
