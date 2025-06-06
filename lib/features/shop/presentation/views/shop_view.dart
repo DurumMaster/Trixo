@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:trixo_frontend/features/shared/widgets/widgets.dart';
 import 'package:trixo_frontend/features/shop/domain/shop_domain.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_providers.dart';
@@ -457,9 +458,7 @@ class MainImageCarouselState extends State<MainImageCarousel> {
     if (oldWidget.product.id != widget.product.id) {
       _currentInner = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _pageController.jumpToPage(0);
-        }
+        if (mounted) _pageController.jumpToPage(0);
       });
     }
   }
@@ -468,6 +467,58 @@ class MainImageCarouselState extends State<MainImageCarousel> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// Abre una nueva ruta transparente con animación de escala + fading.
+  void _openImageFullScreen(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black54, // Fondo semitransparente “nublado”
+        barrierDismissible: true,
+        pageBuilder: (ctx, animation, secondaryAnimation) {
+          return GestureDetector(
+            onTap: () => Navigator.of(ctx).pop(),
+            behavior: HitTestBehavior.translucent,
+            child: SafeArea(
+              child: Center(
+                child: Hero(
+                  tag: imageUrl,
+                  child: PhotoView(
+                    imageProvider: NetworkImage(imageUrl),
+                    backgroundDecoration: const BoxDecoration(
+                      color: Colors.transparent,
+                    ),
+                    loadingBuilder: (ctx, event) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    minScale: PhotoViewComputedScale.contained,
+                    maxScale: PhotoViewComputedScale.covered * 2,
+                    initialScale: PhotoViewComputedScale.contained,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+        transitionsBuilder: (ctx, anim, secondaryAnim, child) {
+          // 1) FadeIn para todo el child
+          final fade = FadeTransition(
+            opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+            child: child,
+          );
+          // 2) Scale “pop” usando easeInOutBack
+          return ScaleTransition(
+            scale: CurvedAnimation(
+              parent: anim,
+              curve: Curves.easeInOutBack,
+            ),
+            child: fade,
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -493,15 +544,24 @@ class MainImageCarouselState extends State<MainImageCarousel> {
             },
             itemBuilder: (context, index) {
               final url = images[index];
-              return Image.network(
-                url,
-                fit: BoxFit.cover,
-                loadingBuilder: (ctx, child, prog) {
-                  if (prog == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(color: loaderColor),
-                  );
-                },
+              return GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => _openImageFullScreen(context, url),
+                child: Hero(
+                  tag: url,
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    height: 350,
+                    width: double.infinity,
+                    loadingBuilder: (ctx, child, prog) {
+                      if (prog == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(color: loaderColor),
+                      );
+                    },
+                  ),
+                ),
               );
             },
           ),
