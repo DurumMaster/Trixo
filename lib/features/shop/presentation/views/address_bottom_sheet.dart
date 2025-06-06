@@ -31,7 +31,8 @@ class _AddressFormState extends State<AddressForm> {
     _line2Controller = TextEditingController(text: address?.line2 ?? '');
     _cityController = TextEditingController(text: address?.city ?? '');
     _stateController = TextEditingController(text: address?.state ?? '');
-    _postalCodeController = TextEditingController(text: address?.postalCode ?? '');
+    _postalCodeController =
+        TextEditingController(text: address?.postalCode ?? '');
     _countryController = TextEditingController(text: address?.country ?? '');
   }
 
@@ -73,7 +74,7 @@ class _AddressFormState extends State<AddressForm> {
               TextFormField(
                 controller: _line1Controller,
                 decoration: const InputDecoration(
-                  hintText: 'Línea 1',
+                  hintText: 'Calle',
                   prefixIcon: Icon(Icons.home),
                 ),
                 validator: (value) =>
@@ -83,7 +84,7 @@ class _AddressFormState extends State<AddressForm> {
               TextFormField(
                 controller: _line2Controller,
                 decoration: const InputDecoration(
-                  hintText: 'Línea 2',
+                  hintText: 'Portal y piso',
                   prefixIcon: Icon(Icons.location_on),
                 ),
                 validator: (value) =>
@@ -169,15 +170,17 @@ class _AddressFormState extends State<AddressForm> {
                   style: TextStyle(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? const Color(0xFF1E1E1E) : Theme.of(context).primaryColor,
+                  backgroundColor: isDark
+                      ? const Color(0xFF1E1E1E)
+                      : Theme.of(context).primaryColor,
                   foregroundColor: Colors.white, // color del ripple
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
               ),
-
               const SizedBox(height: 8),
             ],
           ),

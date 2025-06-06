@@ -196,13 +196,18 @@ class CartView extends ConsumerWidget {
             delivery: delivery,
             total: total,
             onCheckout: () async {
-              context.go("/checkout_confirmation",
-                extra: {
-                  'subtotal': subtotal,
-                  'delivery': delivery,
-                  'total': total,
-                },
-              );
+              if (cartItems.isNotEmpty) {
+                context.push(
+                  "/checkout_confirmation",
+                  extra: {
+                    'subtotal': subtotal,
+                    'delivery': delivery,
+                    'total': total,
+                  },
+                );
+              } else {
+                null;
+              }
             },
           ),
         ],

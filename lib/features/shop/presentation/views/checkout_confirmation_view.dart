@@ -7,8 +7,8 @@ import 'package:trixo_frontend/features/shared/widgets/custom_text_field_form.da
 import 'package:trixo_frontend/features/shared/widgets/checkout_summary.dart';
 import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_provider.dart';
+import 'package:trixo_frontend/features/shop/presentation/providers/shop_providers.dart';
 import 'package:trixo_frontend/features/shop/presentation/views/address_bottom_sheet.dart';
-import 'package:trixo_frontend/features/shop/presentation/views/cart_view.dart';
 
 final billingDetailsProvider =
     StateProvider<stripe.BillingDetails?>((ref) => null);
@@ -36,7 +36,8 @@ class CheckoutConfirmationView extends ConsumerStatefulWidget {
 class _CheckoutConfirmationViewState
     extends ConsumerState<CheckoutConfirmationView> {
   bool _isLoading = false;
-  final GlobalKey<_BillingFormState> _billingFormKey = GlobalKey<_BillingFormState>();
+  final GlobalKey<_BillingFormState> _billingFormKey =
+      GlobalKey<_BillingFormState>();
 
   @override
   void initState() {
@@ -57,7 +58,8 @@ class _CheckoutConfirmationViewState
       ref.read(billingDetailsProvider.notifier).state = stripe.BillingDetails(
         name: (customer.name!.isNotEmpty) ? customer.name : user?.displayName,
         email: (customer.email!.isNotEmpty) ? customer.email : user?.email,
-        phone: (customer.phone!.isNotEmpty) ? customer.phone : user?.phoneNumber,
+        phone:
+            (customer.phone!.isNotEmpty) ? customer.phone : user?.phoneNumber,
         address: stripe.Address(
           city: customer.address?['city'] ?? '',
           country: customer.address?['country'] ?? '',
@@ -129,14 +131,13 @@ class _CheckoutConfirmationViewState
         backgroundColor: isDark ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: isDark
-                  ? Colors.white
-                  : Colors.black), // o Colors.white si es dark
-          onPressed: () {
-            context.go("/shop");
-          }
-        ),
+            icon: Icon(Icons.arrow_back,
+                color: isDark
+                    ? Colors.white
+                    : Colors.black), // o Colors.white si es dark
+            onPressed: () {
+              context.pop();
+            }),
         title: Text(
           'Datos de Pedido',
           style: TextStyle(
@@ -211,20 +212,23 @@ class _CheckoutConfirmationViewState
             ),
             const SizedBox(height: 6),
             _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                )
-              : CheckoutSummary(
-                  subtotal: widget.subtotal,
-                  delivery: widget.delivery,
-                  total: widget.total,
-                  onCheckout: () async {
+                ? const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  )
+                : CheckoutSummary(
+                    subtotal: widget.subtotal,
+                    delivery: widget.delivery,
+                    total: widget.total,
+                    onCheckout: () async {
                       try {
                         final billingFormState = _billingFormKey.currentState;
-                        if (billingFormState == null || !billingFormState.validateForm()) {
+                        if (billingFormState == null ||
+                            !billingFormState.validateForm()) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Por favor completa correctamente el formulario')),
+                            const SnackBar(
+                                content: Text(
+                                    'Por favor completa correctamente el formulario')),
                           );
                           return;
                         }
@@ -326,7 +330,13 @@ class _CheckoutConfirmationViewState
                                 paymentMethod,
                               );
 
-                          context.go("/shop");
+                          ref.read(cartProvider.notifier).clearCart();
+
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const SuccessDialog(),
+                          );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -429,22 +439,20 @@ class _BillingFormState extends State<BillingForm> {
   }
 
   bool _isAddressComplete(stripe.Address? address) {
-  if (address == null) return false;
+    if (address == null) return false;
 
-  return (address.line1?.isNotEmpty ?? false) &&
-      (address.city?.isNotEmpty ?? false) &&
-      (address.country?.isNotEmpty ?? false) &&
-      (address.postalCode?.isNotEmpty ?? false) &&
-      (address.state?.isNotEmpty ?? false);
+    return (address.line1?.isNotEmpty ?? false) &&
+        (address.city?.isNotEmpty ?? false) &&
+        (address.country?.isNotEmpty ?? false) &&
+        (address.postalCode?.isNotEmpty ?? false) &&
+        (address.state?.isNotEmpty ?? false);
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: _formKey,
-      child: Column(
-        children: [
+        key: _formKey,
+        child: Column(children: [
           CustomTextFormField(
             controller: _nameController,
             label: 'Nombre',
@@ -466,7 +474,7 @@ class _BillingFormState extends State<BillingForm> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Por favor ingresa un email';
-              }            
+              }
               final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
               if (!emailRegex.hasMatch(value.trim())) {
                 return 'Email inválido';
@@ -507,7 +515,8 @@ class _BillingFormState extends State<BillingForm> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        widget.billingDetails?.address?.line1 ?? 'Agregar dirección',
+                        widget.billingDetails?.address?.line1 ??
+                            'Agregar dirección',
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontWeight: FontWeight.w500),
@@ -516,15 +525,101 @@ class _BillingFormState extends State<BillingForm> {
                   ),
                   const SizedBox(width: 12),
                   _isAddressComplete(widget.billingDetails?.address)
-                      ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                      ? const Icon(Icons.check_circle,
+                          color: Colors.green, size: 20)
                       : const Icon(Icons.arrow_forward_ios, size: 16),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 10),
-        ]
-      )
+        ]));
+  }
+}
+
+// Widget personalizado para el popup de éxito
+class SuccessDialog extends StatelessWidget {
+  const SuccessDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: isDark
+              ? colorScheme.outline
+              : colorScheme.primary.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      elevation: 8,
+      backgroundColor: isDark ? colorScheme.surface : colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.check_circle_rounded,
+              color: Colors.greenAccent[400],
+              size: 80,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '¡Compra exitosa!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: isDark ? colorScheme.onSurface : colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tu pedido ha sido procesado correctamente',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark
+                    ? colorScheme.onSurfaceVariant
+                    : colorScheme.onSurface.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(height: 28),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.go('/shop');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isDark ? colorScheme.primaryContainer : colorScheme.primary,
+                foregroundColor: isDark
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onPrimary,
+                minimumSize: const Size(180, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                elevation: 2,
+                shadowColor: isDark
+                    ? Colors.transparent
+                    : colorScheme.primary.withOpacity(0.3),
+              ),
+              child: const Text(
+                'Continuar',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

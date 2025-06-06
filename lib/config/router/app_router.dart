@@ -93,6 +93,10 @@ final goRouterProvider = Provider((ref) {
                 builder: (context, state) => const ShopView(),
               ),
               GoRoute(
+                path: '/cart',
+                builder: (context, state) => const CartView(),
+              ),
+              GoRoute(
                 path: '/checkout_confirmation',
                 builder: (context, state) {
                   final extra = state.extra;

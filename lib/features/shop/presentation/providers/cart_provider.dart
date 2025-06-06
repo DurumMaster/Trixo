@@ -28,6 +28,10 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     }
   }
 
+  void clearCart() {
+    state = [];
+  }
+
   void removeFromCart(int id, String size) {
     state =
         state.where((item) => !(item.id == id && item.size == size)).toList();
@@ -65,15 +69,35 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     }).toList();
   }
 
+  Map<int, int> getProductQuantities() {
+    final Map<int, int> quantities = {};
+
+    for (final item in state) {
+      quantities[item.id] = (quantities[item.id] ?? 0) + item.quantity;
+    }
+
+    return quantities;
+  }
+
   double get totalPrice {
     return state.fold(0.0, (sum, item) => sum + item.price * item.quantity);
   }
 
+  //Por si el otro no funciona
+//   Map<int, int> getProductQuantities() {
+//   return state.fold<Map<int, int>>(
+//     {},
+//     (map, item) => map..update(
+//       item.id,
+//       (value) => value + item.quantity,
+//       ifAbsent: () => item.quantity
+//     )
+//   );
+// }
 }
 
 final cartProvider = StateNotifierProvider<CartNotifier, List<CartItem>>(
     (ref) => CartNotifier());
-
 
 final cartTotalItemsProvider = Provider<int>((ref) {
   final cartList = ref.watch(cartProvider);

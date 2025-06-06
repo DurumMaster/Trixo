@@ -1132,9 +1132,7 @@ class ShopViewState extends ConsumerState<ShopView> {
             child: GestureDetector(
               onTap: () {
                 // Navegar a la pantalla de carrito
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CartView()),
-                );
+                context.push('/cart');
               },
               child: Stack(
                 alignment: Alignment.center,
