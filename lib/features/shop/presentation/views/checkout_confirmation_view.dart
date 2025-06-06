@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:trixo_frontend/features/shared/widgets/custom_text_field_form.dart';
 import 'package:trixo_frontend/features/shared/widgets/checkout_summary.dart';
 import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
-import 'package:trixo_frontend/features/shop/presentation/providers/shop_provider.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_providers.dart';
 import 'package:trixo_frontend/features/shop/presentation/views/address_bottom_sheet.dart';
 
@@ -35,7 +34,7 @@ class CheckoutConfirmationView extends ConsumerStatefulWidget {
 
 class _CheckoutConfirmationViewState
     extends ConsumerState<CheckoutConfirmationView> {
-  bool _isLoading = false;
+  final bool _isLoading = false;
   final GlobalKey<_BillingFormState> _billingFormKey =
       GlobalKey<_BillingFormState>();
 
@@ -62,7 +61,7 @@ class _CheckoutConfirmationViewState
             (customer.phone!.isNotEmpty) ? customer.phone : user?.phoneNumber,
         address: stripe.Address(
           city: customer.address?['city'] ?? '',
-          country: customer.address?['country'] ?? '',
+          country: customer.address?['country'],
           line1: customer.address?['line1'] ?? '',
           line2: customer.address?['line2'] ?? '',
           postalCode: customer.address?['postalCode'] ?? '',
@@ -330,6 +329,10 @@ class _CheckoutConfirmationViewState
                                 paymentMethod,
                               );
 
+                          Map<int, int> productos = ref.read(cartProvider.notifier).getProductQuantities();
+
+                          await ref.read(shopProvider).reduceStock(productos);
+
                           ref.read(cartProvider.notifier).clearCart();
 
                           showDialog(
@@ -346,7 +349,7 @@ class _CheckoutConfirmationViewState
                         }
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: ${e.toString()}')),
+                          const SnackBar(content: Text('Ha ocurrido un error al realizar el pago')),
                         );
                       }
                     },

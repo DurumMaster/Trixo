@@ -155,7 +155,9 @@ class _AddressFormState extends State<AddressForm> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final address = Address(
-                      country: _countryController.text.trim(),
+                      country: _countryController.text.trim().toUpperCase() == 'ESPAÑA'
+                          ? 'ES'
+                          : _countryController.text.trim(),
                       city: _cityController.text.trim(),
                       line1: _line1Controller.text.trim(),
                       line2: _line2Controller.text.trim(),

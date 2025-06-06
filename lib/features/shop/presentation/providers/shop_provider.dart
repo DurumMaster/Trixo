@@ -115,6 +115,15 @@ class ShopNotifier extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> reduceStock(Map<int, int> productos) {
+    try {
+      return _repository.reduceStock(productos);
+    } catch (e) {
+      debugPrint('Error al reducir stock: $e');
+      rethrow;
+    }
+  }
 }
 
 final shopProvider = ChangeNotifierProvider<ShopNotifier>((ref) {

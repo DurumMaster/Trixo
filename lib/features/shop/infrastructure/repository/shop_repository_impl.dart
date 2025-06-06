@@ -46,4 +46,9 @@ class ShopRepositoryImpl extends ShopRepository {
   Future<void> updateCustomer(Customer customer) {
     return datasource.updateCustomer(customer);
   }
+
+  @override
+  Future<void> reduceStock(Map<int, int> productos) {
+    return datasource.reduceStock(productos);
+  }
 }

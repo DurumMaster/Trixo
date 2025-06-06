@@ -11,4 +11,5 @@ abstract class ShopRepository {
   Future<Customer> insertCustomer(Customer customer);
   Future<bool> hasSavedPaymentMethod(String customerId);
   Future<void> updateCustomer(Customer customer);
+  Future<void> reduceStock(Map<int, int> productos);
 }

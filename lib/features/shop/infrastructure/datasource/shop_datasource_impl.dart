@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/rendering.dart';
 
 import 'package:trixo_frontend/config/config.dart';
 import 'package:trixo_frontend/features/shop/domain/dto/payment_dto.dart';
@@ -157,6 +158,27 @@ class ShopDatasourceImpl extends ShopDatasource {
       }
     } catch (e) {
       throw Exception('Fallo al actualizar cliente: $e');
+    }
+  }
+
+  @override
+  Future<void> reduceStock(Map<int, int> productos) async {
+    try {
+      for (final entry in productos.entries) {
+        final productId = entry.key;
+        final quantity = entry.value;
+
+        for(int i = 0; i < quantity; i++){
+          final response = await dio.put(
+            '/products/$productId/reduce',
+            data: {'quantity': quantity},
+          );
+
+          debugPrint('Reduciendo stock del producto $productId: ${response.statusCode} - ${response.data}');
+        }
+      }
+    } catch (e) {
+      throw Exception('Fallo al reducir stock: $e');
     }
   }
 }
