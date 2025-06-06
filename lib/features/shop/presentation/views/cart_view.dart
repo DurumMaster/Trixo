@@ -195,7 +195,7 @@ class CartView extends ConsumerWidget {
             subtotal: subtotal,
             delivery: delivery,
             total: total,
-            onCheckout: () {
+            onCheckout: () async {
               context.go("/checkout_confirmation",
                 extra: {
                   'subtotal': subtotal,

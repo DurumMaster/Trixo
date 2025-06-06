@@ -171,7 +171,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
                 if (confirmed == true) {
                   await ref.read(authRepositoryProvider).logOut();
-                  Future.microtask(() {
+                  await Future.microtask(() {
                     if (context.mounted) {
                       context.go("/login");
                     }

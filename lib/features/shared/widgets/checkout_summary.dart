@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:trixo_frontend/features/shared/widgets/custom_loading_button.dart';
 
 class CheckoutSummary extends StatelessWidget {
   final double? subtotal;
   final double? delivery;
   final double? total;
-  final VoidCallback? onCheckout;
+  final Future<void> Function()? onCheckout;
 
   const CheckoutSummary({
     super.key,
@@ -35,30 +36,23 @@ class CheckoutSummary extends StatelessWidget {
             ],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // 🔑 hace que se ajuste al contenido
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _priceRow('Subtotal', '$subtotal€'),
+              _priceRow('Subtotal', '${subtotal ?? 0}€'),
               const SizedBox(height: 6),
-              _priceRow('Envío', '$delivery€'),
+              _priceRow('Envío', '${delivery ?? 0}€'),
               const Divider(height: 20, thickness: 0.7, color: Colors.black26),
-              _priceRow('Total', '$total€', isBold: true),
+              _priceRow('Total', '${total ?? 0}€', isBold: true),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: onCheckout,
-                  child: const Text('Confirmar', style: TextStyle(fontSize: 16)),
-                ),
+             SizedBox(
+              width: double.infinity,
+              child: MUILoadingButton(
+                text: 'Confirmar',
+                loadingStateText: 'Procesando...',
+                onPressed: onCheckout,
               ),
+            ),
             ],
           ),
         ),

@@ -43,12 +43,14 @@ class _MUILoadingButtonState extends State<MUILoadingButton> {
   bool _isLoadingButtonPressed = false;
 
   void _startLoading() {
+    if (!mounted) return;
     setState(() {
       _isLoadingButtonPressed = true;
     });
   }
 
   void _stopLoading() {
+    if (!mounted) return;
     setState(() {
       _isLoadingButtonPressed = false;
     });

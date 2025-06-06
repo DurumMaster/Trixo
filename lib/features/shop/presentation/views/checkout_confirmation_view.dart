@@ -8,6 +8,7 @@ import 'package:trixo_frontend/features/shared/widgets/checkout_summary.dart';
 import 'package:trixo_frontend/features/shop/domain/entity/customer.dart';
 import 'package:trixo_frontend/features/shop/presentation/providers/shop_provider.dart';
 import 'package:trixo_frontend/features/shop/presentation/views/address_bottom_sheet.dart';
+import 'package:trixo_frontend/features/shop/presentation/views/cart_view.dart';
 
 final billingDetailsProvider =
     StateProvider<stripe.BillingDetails?>((ref) => null);
@@ -35,6 +36,7 @@ class CheckoutConfirmationView extends ConsumerStatefulWidget {
 class _CheckoutConfirmationViewState
     extends ConsumerState<CheckoutConfirmationView> {
   bool _isLoading = false;
+  final GlobalKey<_BillingFormState> _billingFormKey = GlobalKey<_BillingFormState>();
 
   @override
   void initState() {
@@ -53,9 +55,9 @@ class _CheckoutConfirmationViewState
     if (customer != null) {
       // Actualiza billingDetailsProvider
       ref.read(billingDetailsProvider.notifier).state = stripe.BillingDetails(
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
+        name: (customer.name!.isNotEmpty) ? customer.name : user?.displayName,
+        email: (customer.email!.isNotEmpty) ? customer.email : user?.email,
+        phone: (customer.phone!.isNotEmpty) ? customer.phone : user?.phoneNumber,
         address: stripe.Address(
           city: customer.address?['city'] ?? '',
           country: customer.address?['country'] ?? '',
@@ -72,6 +74,13 @@ class _CheckoutConfirmationViewState
       if (hasSavedCard) {
         ref.read(saveCardConsentProvider.notifier).state = true;
       }
+    } else {
+      ref.read(billingDetailsProvider.notifier).state = stripe.BillingDetails(
+        name: user?.displayName,
+        email: user?.email,
+        phone: user?.phoneNumber,
+        address: null,
+      );
     }
   }
 
@@ -122,9 +131,11 @@ class _CheckoutConfirmationViewState
         leading: IconButton(
           icon: Icon(Icons.arrow_back,
               color: isDark
-                  ? Colors.black
-                  : Colors.white), // o Colors.white si es dark
-          onPressed: () => context.pop(),
+                  ? Colors.white
+                  : Colors.black), // o Colors.white si es dark
+          onPressed: () {
+            context.go("/shop");
+          }
         ),
         title: Text(
           'Datos de Pedido',
@@ -150,6 +161,7 @@ class _CheckoutConfirmationViewState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       BillingForm(
+                        key: _billingFormKey,
                         billingDetails: billingDetails,
                         onBillingDetailsChanged: (newDetails) {
                           ref.read(billingDetailsProvider.notifier).state =
@@ -199,22 +211,24 @@ class _CheckoutConfirmationViewState
             ),
             const SizedBox(height: 6),
             _isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  )
-                : CheckoutSummary(
-                    subtotal: widget.subtotal,
-                    delivery: widget.delivery,
-                    total: widget.total,
-                    onCheckout: () async {
-                      if (_isLoading) return;
-
-                      setState(() {
-                        _isLoading = true;
-                      });
-
+              ? const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                )
+              : CheckoutSummary(
+                  subtotal: widget.subtotal,
+                  delivery: widget.delivery,
+                  total: widget.total,
+                  onCheckout: () async {
                       try {
+                        final billingFormState = _billingFormKey.currentState;
+                        if (billingFormState == null || !billingFormState.validateForm()) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Por favor completa correctamente el formulario')),
+                          );
+                          return;
+                        }
+
                         if (billingDetails == null || cardDetails == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -324,10 +338,6 @@ class _CheckoutConfirmationViewState
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error: ${e.toString()}')),
                         );
-                      } finally {
-                        setState(() {
-                          _isLoading = false;
-                        });
                       }
                     },
                   )
@@ -358,6 +368,7 @@ class _BillingFormState extends State<BillingForm> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _nameController;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -413,66 +424,107 @@ class _BillingFormState extends State<BillingForm> {
     );
   }
 
+  bool validateForm() {
+    return _formKey.currentState?.validate() ?? false;
+  }
+
+  bool _isAddressComplete(stripe.Address? address) {
+  if (address == null) return false;
+
+  return (address.line1?.isNotEmpty ?? false) &&
+      (address.city?.isNotEmpty ?? false) &&
+      (address.country?.isNotEmpty ?? false) &&
+      (address.postalCode?.isNotEmpty ?? false) &&
+      (address.state?.isNotEmpty ?? false);
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CustomTextFormField(
-          controller: _nameController,
-          label: 'Nombre',
-          hint: 'Introduce tu nombre',
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Por favor ingresa un nombre';
-            }
-            return null;
-          },
-          onChanged: _onNameChanged,
-        ),
-        const SizedBox(height: 20),
-        CustomTextFormField(
-          controller: _emailController,
-          label: 'Email',
-          hint: 'Introduce tu email',
-          keyboardType: TextInputType.emailAddress,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Por favor ingresa un email';
-            }
-            return null;
-          },
-          onChanged: _onEmailChanged,
-        ),
-        const SizedBox(height: 20),
-        CustomTextFormField(
-          controller: _phoneController,
-          label: 'Teléfono',
-          hint: 'Introduce tu número de teléfono',
-          keyboardType: TextInputType.phone,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Por favor ingresa un teléfono';
-            }
-            return null;
-          },
-          onChanged: _onPhoneChanged,
-        ),
-        const Divider(height: 32),
-        const SizedBox(height: 12),
-        GestureDetector(
-          onTap: widget.onShowAddressSheet,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Dirección'),
-              Text(
-                  widget.billingDetails?.address?.line1 ?? 'Agregar dirección'),
-              const Icon(Icons.arrow_forward_ios, size: 16),
-            ],
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          CustomTextFormField(
+            controller: _nameController,
+            label: 'Nombre',
+            hint: 'Introduce tu nombre',
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Por favor ingresa un nombre';
+              }
+              return null;
+            },
+            onChanged: _onNameChanged,
           ),
-        ),
-        const SizedBox(height: 10),
-      ],
+          const SizedBox(height: 20),
+          CustomTextFormField(
+            controller: _emailController,
+            label: 'Email',
+            hint: 'Introduce tu email',
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Por favor ingresa un email';
+              }            
+              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+              if (!emailRegex.hasMatch(value.trim())) {
+                return 'Email inválido';
+              }
+              return null;
+            },
+            onChanged: _onEmailChanged,
+          ),
+          const SizedBox(height: 20),
+          CustomTextFormField(
+            controller: _phoneController,
+            label: 'Teléfono',
+            hint: 'Introduce tu número de teléfono',
+            keyboardType: TextInputType.phone,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Por favor ingresa un teléfono';
+              }
+              final phoneRegex = RegExp(r'^\+?[0-9]{7,15}$');
+              if (!phoneRegex.hasMatch(value.trim())) {
+                return 'Teléfono inválido';
+              }
+              return null;
+            },
+            onChanged: _onPhoneChanged,
+          ),
+          const Divider(height: 32),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: widget.onShowAddressSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text('Dirección'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        widget.billingDetails?.address?.line1 ?? 'Agregar dirección',
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _isAddressComplete(widget.billingDetails?.address)
+                      ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                      : const Icon(Icons.arrow_forward_ios, size: 16),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ]
+      )
     );
   }
 }
