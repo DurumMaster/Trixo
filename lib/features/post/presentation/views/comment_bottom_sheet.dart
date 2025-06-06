@@ -101,7 +101,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> {
                             return userAsync.when(
                               data: (user) =>
                                   _CommentItem(comment: comment, user: user),
-                              loading: () => _LoadingCommentItem(),
+                              loading: () => null,
                               error: (error, stack) =>
                                   _ErrorCommentItem(error: error),
                             );
@@ -217,22 +217,6 @@ class _CommentItem extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _LoadingCommentItem extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isDark ? Colors.white : Colors.black;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(color),
-      ),
     );
   }
 }

@@ -110,7 +110,7 @@ class _ReviewBottomSheetState extends ConsumerState<ReviewBottomSheet> {
                             return userAsync.when(
                               data: (user) =>
                                   ReviewItem(review: review, user: user),
-                              loading: () => const _LoadingReviewItem(),
+                              loading: () => null,
                               error: (error, _) =>
                                   _ErrorReviewItem(error: error),
                             );
@@ -196,25 +196,6 @@ class _ReviewBottomSheetState extends ConsumerState<ReviewBottomSheet> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// Estado de loading de un ReviewItem
-class _LoadingReviewItem extends StatelessWidget {
-  const _LoadingReviewItem();
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isDark ? Colors.white : Colors.black;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(color),
       ),
     );
   }
