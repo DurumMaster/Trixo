@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,22 +46,37 @@ class CreatePostView extends ConsumerWidget {
                 children: [
                   // Vista previa de la primera imagen
                   if (images.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          File(images.first),
-                          width: double.infinity,
-                          height: 300,
-                          fit: BoxFit.cover,
+                    ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                      child: AspectRatio(
+                        aspectRatio: 4 / 5,
+                        child: Container(
+                          color: isDark
+                              ? AppColors.backgroundDark
+                              : AppColors.backgroundLight,
+                          child: ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(12)),
+                            child: Image.file(
+                              File(images.first),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.broken_image,
+                                size: 50,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
 
                   // Descripción minimalista
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
                     child: TextField(
                       maxLines: null,
                       maxLength: _maxChars,
@@ -97,8 +113,7 @@ class CreatePostView extends ConsumerWidget {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey.withAlpha(38)
-,
+                            color: Colors.grey.withAlpha(38),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -155,7 +170,7 @@ class CreatePostView extends ConsumerWidget {
                     ),
 
                   const SizedBox(
-                    height: 100,
+                    height: 12,
                   ),
 
                   // Botón Share personalizado
@@ -296,8 +311,7 @@ class _CreatePostSelectTagsViewState
                       : color.withAlpha(102),
                   borderRadius: BorderRadius.circular(20),
                   border: isSelected
-                      ? Border.all(color: color.withAlpha(230)
-, width: 2)
+                      ? Border.all(color: color.withAlpha(230), width: 2)
                       : null,
                 ),
                 child: Text(

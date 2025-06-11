@@ -199,42 +199,56 @@ class _ImagePickerViewState extends ConsumerState<ImagePickerView> {
             onPageChanged: (i) => setState(() => _currentPage = i),
             itemBuilder: (context, index) {
               final path = state.images[index];
-              return Padding(
-                padding: const EdgeInsets.all(20),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.file(
-                        File(path),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.black.withAlpha(26),
-                          child: Icon(Icons.broken_image,
-                              color: Theme.of(context).colorScheme.error),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () => notifier.removeImage(path),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surface
-                                .withAlpha(153),
-                            shape: BoxShape.circle,
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(12)),
+                        child: AspectRatio(
+                          aspectRatio: 4 / 5,
+                          child: Container(
+                            color: isDark
+                                ? AppColors.backgroundDark
+                                : AppColors.backgroundLight,
+                            child: ClipRRect(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
+                              child: Image.file(
+                                File(path),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.broken_image,
+                                  size: 50,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Icon(Icons.close, size: 20, color: iconColor),
                         ),
                       ),
-                    ),
-                  ],
+                
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => notifier.removeImage(path),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surface
+                                  .withAlpha(153),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.close, size: 20, color: iconColor),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
